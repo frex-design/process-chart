@@ -1,19 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { PHASES, ds } from '../lib/utils'
-
-// シンプルな日付入力コンポーネント
-function DateInput({ id, value, onChange }) {
-  return (
-    <input
-      type="date"
-      id={id}
-      value={value || ''}
-      onChange={e => onChange(e.target.value)}
-      style={{ width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
-    />
-  )
-}
+import DatePicker from './DatePicker'
 
 export default function Modals({ jobs, staff, cars, onRefresh }) {
   const [modal, setModal] = useState(null) // {type, data}
@@ -183,8 +171,8 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
 
   const dateRange = (sk, ek) => (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
-      <div><label className="form-label">開始日</label><DateInput id={sk} value={form[sk]} onChange={v => f(sk, v)} /></div>
-      <div><label className="form-label">終了日</label><DateInput id={ek} value={form[ek]} onChange={v => f(ek, v)} /></div>
+      <div><label className="form-label">開始日</label><DatePicker id={sk} value={form[sk]} onChange={v => f(sk, v)} /></div>
+      <div><label className="form-label">終了日</label><DatePicker id={ek} value={form[ek]} onChange={v => f(ek, v)} /></div>
     </div>
   )
 
@@ -268,9 +256,9 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
         {(type === 'job' || type === 'jobEdit') && <>
           <div className="modal-title">{type === 'jobEdit' ? '業務を編集' : '業務を追加'}</div>
           <div className="form-row"><label className="form-label">業務名</label><input value={form.name || ''} onChange={e => f('name', e.target.value)} /></div>
-          <div className="form-row"><label className="form-label">契約工期（開始）</label><DateInput value={form.contractStart} onChange={v => f('contractStart', v)} /></div>
-          <div className="form-row"><label className="form-label">契約工期（終了）</label><DateInput value={form.contractEnd} onChange={v => f('contractEnd', v)} /></div>
-          <div className="form-row"><label className="form-label">提出日</label><DateInput value={form.submitDate} onChange={v => f('submitDate', v)} /></div>
+          <div className="form-row"><label className="form-label">契約工期（開始）</label><DatePicker value={form.contractStart} onChange={v => f('contractStart', v)} /></div>
+          <div className="form-row"><label className="form-label">契約工期（終了）</label><DatePicker value={form.contractEnd} onChange={v => f('contractEnd', v)} /></div>
+          <div className="form-row"><label className="form-label">提出日</label><DatePicker value={form.submitDate} onChange={v => f('submitDate', v)} /></div>
           <div className="modal-actions">
             {type === 'jobEdit' && <button className="btn btn-danger" onClick={deleteJob} style={{ marginRight: 'auto' }}>削除</button>}
             <button className="btn" onClick={close}>キャンセル</button>
