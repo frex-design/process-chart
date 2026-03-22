@@ -31,11 +31,31 @@ export default function App() {
     setupRealtime()
   }, [])
 
+  // データ読み込み完了後に当月へスクロール
+  useEffect(() => {
+    if (!loading) {
+      scrollToCurrentMonth()
+    }
+  }, [loading])
+
   useEffect(() => {
     setDays(buildDays(year))
   }, [year])
 
+  function scrollToCurrentMonth() {
+    const now = new Date()
+    const nowYear = now.getMonth() < 3 ? now.getFullYear() - 1 : now.getFullYear()
+    if (year !== nowYear) return
+    setTimeout(() => {
+      if (!mainRef.current) return
+      const currentDays = buildDays(year)
+      const monthStart = currentDays.findIndex(d => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+      if (monthStart >= 0) mainRef.current.scrollLeft = monthStart * COL
+    }, 300)
+  }
+
   async function fetchAll() {
+    const scrollX = mainRef.current ? mainRef.current.scrollLeft : -1
     setLoading(true)
     const [j, s, c, b, cb, m, y] = await Promise.all([
       supabase.from('jobs').select('*').order('id'),
@@ -58,6 +78,10 @@ export default function App() {
     }
     if (y.data) setYears(y.data.map(r => r.year))
     setLoading(false)
+    // 初回以外はスクロール位置を維持
+    if (scrollX >= 0) {
+      setTimeout(() => { if (mainRef.current) mainRef.current.scrollLeft = scrollX }, 100)
+    }
   }
 
   function setupRealtime() {
@@ -117,20 +141,21 @@ export default function App() {
       await supabase.from('years').insert({ year: newYear })
       setYears(prev => [...prev, newYear])
       setYear(newYear)
-      setTimeout(() => { if (mainRef.current) mainRef.current.scrollLeft = 0 }, 100)
+      setTimeout(() => { if (mainRef.current) mainRef.current.scrollLeft = 0 }, 200)
     } else {
       const y = parseInt(val)
       setYear(y)
       setTimeout(() => {
         if (!mainRef.current) return
         if (y === NOW_YEAR) {
+          const now = new Date()
           const newDays = buildDays(y)
-          const ti = newDays.findIndex(d => ds(d) === TODAY)
-          if (ti > 0) mainRef.current.scrollLeft = Math.max(0, (ti - 7) * COL)
+          const monthStart = newDays.findIndex(d => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+          if (monthStart >= 0) mainRef.current.scrollLeft = monthStart * COL
         } else {
           mainRef.current.scrollLeft = 0
         }
-      }, 100)
+      }, 200)
     }
   }
 
