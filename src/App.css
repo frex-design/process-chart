@@ -107,4 +107,13 @@ table{border-collapse:collapse;table-layout:fixed;}
   .controls{flex-wrap:wrap;gap:6px;}
   .gantt-main{max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;}
   .gantt-header{-webkit-overflow-scrolling:touch;}
+  .name-th{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .staff-th{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .staff-th-sm{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .section-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .section-label-partner{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .section-label-car{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .divider-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .memo-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .staff-name-btn{font-size:10px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 }

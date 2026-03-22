@@ -287,9 +287,11 @@ export default function GanttBody({
     )
   }
 
+  const nameColWidth = readOnly ? 100 : 140
+
   const colgroup = (
     <colgroup>
-      <col style={{ width: 140, minWidth: 140, maxWidth: 140 }} />
+      <col style={{ width: nameColWidth, minWidth: nameColWidth, maxWidth: nameColWidth }} />
       {days.map((_, i) => <col key={i} style={{ width: COL, minWidth: COL }} />)}
     </colgroup>
   )
