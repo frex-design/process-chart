@@ -15,8 +15,8 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
     window._openNewBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setSelectedPhase(''); setModal({ type: 'newBar', data }) }
     window._openDriverBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'driverBar', data }) }
     window._openCarBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'carBar', data }) }
-    window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase }); setModal({ type: 'barDetail', data: bar }) }
-    window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id }); setModal({ type: 'carBarDetail', data: bar }) }
+    window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase || '', start: bar.start_date, end: bar.end_date }); setModal({ type: 'barDetail', data: bar }) }
+    window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id, start: bar.start_date, end: bar.end_date }); setModal({ type: 'carBarDetail', data: bar }) }
     window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '' }); setModal({ type: 'jobEdit', data: job }) }
     window._openPersonEdit = (person, cat) => { setForm({ name: person.name }); setModal({ type: 'personEdit', data: { ...person, cat } }) }
     window._openCarEdit = (car) => { setForm({ name: car.name }); setModal({ type: 'carEdit', data: car }) }
@@ -69,7 +69,14 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
   }
 
   async function saveBarDetail() {
-    await supabase.from('bars').update({ job_id: parseInt(form.jobId), phase: form.phase }).eq('id', modal.data.id)
+    if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
+    if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
+    await supabase.from('bars').update({
+      job_id: parseInt(form.jobId),
+      phase: form.phase || '',
+      start_date: form.start,
+      end_date: form.end
+    }).eq('id', modal.data.id)
     onRefresh(); close()
   }
 
@@ -80,7 +87,13 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
   }
 
   async function saveCarBarDetail() {
-    await supabase.from('car_bars').update({ job_id: parseInt(form.jobId) }).eq('id', modal.data.id)
+    if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
+    if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
+    await supabase.from('car_bars').update({
+      job_id: parseInt(form.jobId),
+      start_date: form.start,
+      end_date: form.end
+    }).eq('id', modal.data.id)
     onRefresh(); close()
   }
 
@@ -224,15 +237,22 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
 
         {/* バー詳細・編集 */}
         {type === 'barDetail' && <>
-          <div className="modal-title">工程の編集</div>
-          {jobSelect()}
-          <div className="form-row">
-            <label className="form-label">工程</label>
-            <select value={form.phase || ''} onChange={e => f('phase', e.target.value)}>
-              {PHASES.map(ph => <option key={ph}>{ph}</option>)}
-            </select>
+          <div className="modal-title">
+            {data.phase === '' ? '運転の編集' : data.phase && !data.phase.match(/準備計画|現地踏査|踏査まとめ|定期点検|損傷図作成|調書作成/) ? '補助の編集' : '工程の編集'}
           </div>
-          <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>{data.start_date} 〜 {data.end_date}</div>
+          {jobSelect()}
+          {data.phase !== '' && (
+            <div className="form-row">
+              <label className="form-label">工程</label>
+              <select value={form.phase || ''} onChange={e => f('phase', e.target.value)}>
+                {PHASES.map(ph => <option key={ph}>{ph}</option>)}
+              </select>
+            </div>
+          )}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+            <div><label className="form-label">開始日</label><DatePicker value={form.start} onChange={v => f('start', v)} /></div>
+            <div><label className="form-label">終了日</label><DatePicker value={form.end} onChange={v => f('end', v)} /></div>
+          </div>
           <div className="modal-actions">
             <button className="btn btn-danger" onClick={deleteBar} style={{ marginRight: 'auto' }}>削除</button>
             <button className="btn" onClick={close}>キャンセル</button>
@@ -244,7 +264,10 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
         {type === 'carBarDetail' && <>
           <div className="modal-title">配車の編集</div>
           {jobSelect()}
-          <div style={{ fontSize: 12, color: '#666', marginTop: 8 }}>{data.start_date} 〜 {data.end_date}</div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
+            <div><label className="form-label">開始日</label><DatePicker value={form.start} onChange={v => f('start', v)} /></div>
+            <div><label className="form-label">終了日</label><DatePicker value={form.end} onChange={v => f('end', v)} /></div>
+          </div>
           <div className="modal-actions">
             <button className="btn btn-danger" onClick={deleteCarBar} style={{ marginRight: 'auto' }}>削除</button>
             <button className="btn" onClick={close}>キャンセル</button>
