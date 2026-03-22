@@ -331,6 +331,7 @@ let cars=[
 ];
 let nextCarId=8006;
 let carBars=[],nextCarBarId=1;
+let dragState=null;
 let memos={}; // key: "YYYY-M" → string
 let jobs=[
   {id:1,name:'A橋梁点検',contractStart:'2026-03-01',contractEnd:'2026-03-31',submitDate:'2026-03-27'},
@@ -1171,7 +1172,16 @@ function dpClear(){
 }
 
 init();
-window.addEventListener('load',()=>setTimeout(()=>scrollToTarget(),400));
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const main=document.getElementById('ganttMain');
+    const now=new Date();
+    const nowYear=now.getMonth()<3?now.getFullYear()-1:now.getFullYear();
+    if(!main||YEAR!==nowYear)return;
+    const monthStart=days.findIndex(d=>d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear());
+    if(monthStart>=0)main.scrollLeft=monthStart*COL;
+  },500);
+});
 </script>
 </body>
 </html>
