@@ -24,9 +24,9 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
   // グローバル関数として公開
   useEffect(() => {
     window._openModal = (type) => { setForm({}); setSelectedPhase(''); setModal({ type, data: null }) }
-    window._openNewBar = (data) => { setForm({ start: data.start, end: data.end }); setSelectedPhase(''); setModal({ type: 'newBar', data }) }
-    window._openDriverBar = (data) => { setForm({ start: data.start, end: data.end }); setModal({ type: 'driverBar', data }) }
-    window._openCarBar = (data) => { setForm({ start: data.start, end: data.end }); setModal({ type: 'carBar', data }) }
+    window._openNewBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setSelectedPhase(''); setModal({ type: 'newBar', data }) }
+    window._openDriverBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'driverBar', data }) }
+    window._openCarBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'carBar', data }) }
     window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase }); setModal({ type: 'barDetail', data: bar }) }
     window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id }); setModal({ type: 'carBarDetail', data: bar }) }
     window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '' }); setModal({ type: 'jobEdit', data: job }) }
@@ -38,7 +38,7 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
       delete window._openCarBar; delete window._openBarDetail; delete window._openCarBarDetail
       delete window._openJobEdit; delete window._openPersonEdit; delete window._openCarEdit; delete window._openMemo
     }
-  }, [])
+  }, [jobs, staff, cars])
 
   // メモをwindowに同期
   useEffect(() => { window._memos = memos }, [memos])
