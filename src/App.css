@@ -105,5 +105,6 @@ table{border-collapse:collapse;table-layout:fixed;}
   .wrap{padding:0.5rem;}
   .header{flex-direction:column;align-items:flex-start;}
   .controls{flex-wrap:wrap;gap:6px;}
-  .gantt-main{max-height:60vh;}
+  .gantt-main{max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;}
+  .gantt-header{-webkit-overflow-scrolling:touch;}
 }
