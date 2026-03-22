@@ -1,10 +1,23 @@
-import { ds } from '../lib/utils'
+import { ds, overlap } from '../lib/utils'
 
-export default function SummaryRow({ jobs, bars, year }) {
+export default function SummaryRow({ jobs, bars, staff, year }) {
   const now = new Date()
   const mStart = ds(new Date(now.getFullYear(), now.getMonth(), 1))
   const mEnd = ds(new Date(now.getFullYear(), now.getMonth() + 1, 0))
   const activeJobs = new Set(bars.filter(b => b.start_date <= mEnd && b.end_date >= mStart).map(b => b.job_id))
+
+  // スケジュール衝突チェック
+  const conflictStaff = new Set()
+  staff.forEach(s => {
+    const sb = bars.filter(b => b.staff_id === s.id && b.year === year)
+    for (let i = 0; i < sb.length; i++) {
+      for (let j = i + 1; j < sb.length; j++) {
+        if (overlap(sb[i], sb[j])) {
+          conflictStaff.add(s.id)
+        }
+      }
+    }
+  })
 
   const alertJobs = jobs.filter(j => {
     if (!j.submit_date) return false
@@ -39,7 +52,9 @@ export default function SummaryRow({ jobs, bars, year }) {
       </div>
       <div className="sc-conflict">
         <div className="sc-label">スケジュール衝突</div>
-        <div className="sc-val" style={{ color: '#1a8a5a' }}>0名</div>
+        <div className="sc-val" style={{ color: conflictStaff.size > 0 ? '#c0440a' : '#1a8a5a' }}>
+          {conflictStaff.size}名
+        </div>
       </div>
     </div>
   )

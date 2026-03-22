@@ -187,7 +187,7 @@ export default function App() {
         </div>
       </div>
 
-      <SummaryRow jobs={jobs} bars={bars} year={year} />
+      <SummaryRow jobs={jobs} bars={bars} staff={staff} year={year} />
       <Legend jobs={jobs} today={TODAY} onEdit={(j) => window._openJobEdit(j)} />
 
       <div className="hint">セルをクリック → 工程登録　／　バー端をドラッグ → 期間変更　／　バー中央をドラッグ → 移動</div>
