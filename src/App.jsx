@@ -10,6 +10,7 @@ import './App.css'
 
 const TODAY = ds(new Date())
 const NOW_YEAR = new Date().getMonth() < 3 ? new Date().getFullYear() - 1 : new Date().getFullYear()
+const IS_MOBILE = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768
 
 export default function App() {
   const [year, setYear] = useState(NOW_YEAR)
@@ -78,7 +79,6 @@ export default function App() {
     }
     if (y.data) setYears(y.data.map(r => r.year))
     setLoading(false)
-    // 初回以外はスクロール位置を維持
     if (scrollX >= 0) {
       setTimeout(() => { if (mainRef.current) mainRef.current.scrollLeft = scrollX }, 100)
     }
@@ -174,27 +174,30 @@ export default function App() {
       <div className="header">
         <div className="title-text">FRe:x Design inc. | 工程管理表</div>
         <div className="controls">
-          <a href="https://frex-design.github.io/Accommodation-management/" target="_blank" rel="noopener" className="btn">出張宿泊管理システム</a>
+          {!IS_MOBILE && (
+            <a href="https://frex-design.github.io/Accommodation-management/" target="_blank" rel="noopener" className="btn">出張宿泊管理システム</a>
+          )}
           <span className="today-disp">{todayLabel}</span>
           <select value={year} onChange={handleYearChange}>
             {years.map(y => <option key={y} value={y}>{y}年度</option>)}
-            <option value="__add__">＋ {Math.max(...years)+1}年度を追加</option>
+            {!IS_MOBILE && <option value="__add__">＋ {Math.max(...years)+1}年度を追加</option>}
           </select>
-          <button className="btn" onClick={() => window._openModal('staff')}>+ 社員追加</button>
-          <button className="btn" onClick={() => window._openModal('partner')}>+ 協力会社追加</button>
-          <button className="btn" onClick={() => window._openModal('car')}>+ 社用車追加</button>
-          <button className="btn" onClick={() => window._openModal('job')}>+ 業務追加</button>
+          {!IS_MOBILE && <>
+            <button className="btn" onClick={() => window._openModal('staff')}>+ 社員追加</button>
+            <button className="btn" onClick={() => window._openModal('partner')}>+ 協力会社追加</button>
+            <button className="btn" onClick={() => window._openModal('car')}>+ 社用車追加</button>
+            <button className="btn" onClick={() => window._openModal('job')}>+ 業務追加</button>
+          </>}
         </div>
       </div>
 
-      <SummaryRow jobs={jobs} bars={bars} staff={staff} year={year} />
-      <Legend jobs={jobs} today={TODAY} onEdit={(j) => window._openJobEdit(j)} />
-
-      <div className="hint">セルをクリック → 工程登録　／　バー端をドラッグ → 期間変更　／　バー中央をドラッグ → 移動</div>
+      {!IS_MOBILE && <SummaryRow jobs={jobs} bars={bars} staff={staff} year={year} />}
+      {!IS_MOBILE && <Legend jobs={jobs} today={TODAY} onEdit={(j) => window._openJobEdit(j)} />}
+      {!IS_MOBILE && <div className="hint">セルをクリック → 工程登録　／　バー端をドラッグ → 期間変更　／　バー中央をドラッグ → 移動</div>}
 
       <div className="gantt-outer">
         <div className="gantt-header" ref={headerRef} onScroll={onHeaderScroll}>
-          <GanttHeader days={days} memos={memos} today={TODAY} onMemoClick={(key,lbl) => window._openMemo(key,lbl)} />
+          <GanttHeader days={days} memos={memos} today={TODAY} onMemoClick={(key,lbl) => !IS_MOBILE && window._openMemo(key,lbl)} />
         </div>
         <div className="gantt-main" ref={mainRef} onScroll={onMainScroll}>
           <GanttBody
@@ -203,6 +206,7 @@ export default function App() {
             bars={bars} carBars={carBars}
             setBars={setBars} setCarBars={setCarBars}
             onRefresh={fetchAll}
+            readOnly={IS_MOBILE}
           />
         </div>
       </div>

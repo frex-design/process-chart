@@ -7,7 +7,8 @@ export default function GanttBody({
   jobs, staff, cars,
   bars, carBars,
   setBars, setCarBars,
-  onRefresh
+  onRefresh,
+  readOnly = false
 }) {
   const [dragState, setDragState] = useState(null)
   const dragRef = useRef(null)
@@ -64,6 +65,7 @@ export default function GanttBody({
 
   // バーのドラッグ
   function onBarMouseDown(e, bar, kind) {
+    if (readOnly) return
     e.preventDefault(); e.stopPropagation()
     const rh = e.target.closest('.rh')
     const side = rh ? rh.dataset.side : null
