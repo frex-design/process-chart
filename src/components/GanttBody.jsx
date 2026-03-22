@@ -194,7 +194,7 @@ export default function GanttBody({
               key={di}
               className={cellClass(d, di, isConflict, isSmall)}
               data-staff={s.id}
-              onClick={() => onCellClick(s.id, di, isDriver)}
+              onClick={e => { if (e.target.closest('.bar,.bar-sm,.rh')) return; onCellClick(s.id, di, isDriver) }}
             >
               {isConflict && <div className="conflict-dot" />}
               {isT && <div className="today-marker" />}
@@ -220,7 +220,7 @@ export default function GanttBody({
               key={di}
               className={cellClass(d, di, false, true)}
               data-car={car.id}
-              onClick={() => onCarCellClick(car.id, di)}
+              onClick={e => { if (e.target.closest('.bar,.bar-sm,.rh')) return; onCarCellClick(car.id, di) }}
             >
               {isT && <div className="today-marker" />}
               {cb.map(b => renderCarBar(b, di))}
