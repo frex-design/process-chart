@@ -803,6 +803,7 @@ function handleCarBarClick(e,cbid){
   if(dragState&&dragState.moved) return;
   openCarBarDetail(cbid);
 }
+function openNewBarModal(){
   const p=allPersons().find(x=>x.id===pendingBar.staffId);
   document.getElementById('newBarInfo').textContent=`担当：${p?p.name:'—'}`;
   document.getElementById('nbJob').innerHTML=jobs.map(j=>`<option value="${j.id}">${j.name}</option>`).join('');
