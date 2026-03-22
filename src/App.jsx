@@ -1,0 +1,187 @@
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { supabase } from './lib/supabase'
+import { ds, buildDays, jobColor, getHolidays, COL, PHASES, overlap } from './lib/utils'
+import GanttHeader from './components/GanttHeader'
+import GanttBody from './components/GanttBody'
+import SummaryRow from './components/SummaryRow'
+import Legend from './components/Legend'
+import Modals from './components/Modals'
+import './App.css'
+
+const TODAY = ds(new Date())
+const NOW_YEAR = new Date().getMonth() < 3 ? new Date().getFullYear() - 1 : new Date().getFullYear()
+
+export default function App() {
+  const [year, setYear] = useState(NOW_YEAR)
+  const [years, setYears] = useState([2025, 2026])
+  const [days, setDays] = useState(() => buildDays(NOW_YEAR))
+  const [jobs, setJobs] = useState([])
+  const [staff, setStaff] = useState([])
+  const [cars, setCars] = useState([])
+  const [bars, setBars] = useState([])
+  const [carBars, setCarBars] = useState([])
+  const [memos, setMemos] = useState({})
+  const [loading, setLoading] = useState(true)
+  const headerRef = useRef(null)
+  const mainRef = useRef(null)
+
+  // 初期データ取得
+  useEffect(() => {
+    fetchAll()
+    setupRealtime()
+  }, [])
+
+  useEffect(() => {
+    setDays(buildDays(year))
+  }, [year])
+
+  async function fetchAll() {
+    setLoading(true)
+    const [j, s, c, b, cb, m, y] = await Promise.all([
+      supabase.from('jobs').select('*').order('id'),
+      supabase.from('staff').select('*').order('sort_order'),
+      supabase.from('cars').select('*').order('sort_order'),
+      supabase.from('bars').select('*'),
+      supabase.from('car_bars').select('*'),
+      supabase.from('memos').select('*'),
+      supabase.from('years').select('*').order('year'),
+    ])
+    if (j.data) setJobs(j.data)
+    if (s.data) setStaff(s.data)
+    if (c.data) setCars(c.data)
+    if (b.data) setBars(b.data)
+    if (cb.data) setCarBars(cb.data)
+    if (m.data) {
+      const memo = {}
+      m.data.forEach(r => { memo[r.month_key] = r.content })
+      setMemos(memo)
+    }
+    if (y.data) setYears(y.data.map(r => r.year))
+    setLoading(false)
+  }
+
+  function setupRealtime() {
+    supabase.channel('realtime-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bars' }, () => fetchBars())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'car_bars' }, () => fetchCarBars())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => fetchJobs())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, () => fetchStaff())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, () => fetchCars())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'memos' }, () => fetchMemos())
+      .subscribe()
+  }
+
+  async function fetchBars() {
+    const { data } = await supabase.from('bars').select('*')
+    if (data) setBars(data)
+  }
+  async function fetchCarBars() {
+    const { data } = await supabase.from('car_bars').select('*')
+    if (data) setCarBars(data)
+  }
+  async function fetchJobs() {
+    const { data } = await supabase.from('jobs').select('*').order('id')
+    if (data) setJobs(data)
+  }
+  async function fetchStaff() {
+    const { data } = await supabase.from('staff').select('*').order('sort_order')
+    if (data) setStaff(data)
+  }
+  async function fetchCars() {
+    const { data } = await supabase.from('cars').select('*').order('sort_order')
+    if (data) setCars(data)
+  }
+  async function fetchMemos() {
+    const { data } = await supabase.from('memos').select('*')
+    if (data) {
+      const memo = {}
+      data.forEach(r => { memo[r.month_key] = r.content })
+      setMemos(memo)
+    }
+  }
+
+  // 横スクロール同期
+  function onHeaderScroll(e) {
+    if (mainRef.current) mainRef.current.scrollLeft = e.target.scrollLeft
+  }
+  function onMainScroll(e) {
+    if (headerRef.current) headerRef.current.scrollLeft = e.target.scrollLeft
+  }
+
+  // 年度切替
+  async function handleYearChange(e) {
+    const val = e.target.value
+    if (val === '__add__') {
+      const maxYear = Math.max(...years)
+      const newYear = maxYear + 1
+      await supabase.from('years').insert({ year: newYear })
+      setYears(prev => [...prev, newYear])
+      setYear(newYear)
+      setTimeout(() => { if (mainRef.current) mainRef.current.scrollLeft = 0 }, 100)
+    } else {
+      const y = parseInt(val)
+      setYear(y)
+      setTimeout(() => {
+        if (!mainRef.current) return
+        if (y === NOW_YEAR) {
+          const newDays = buildDays(y)
+          const ti = newDays.findIndex(d => ds(d) === TODAY)
+          if (ti > 0) mainRef.current.scrollLeft = Math.max(0, (ti - 7) * COL)
+        } else {
+          mainRef.current.scrollLeft = 0
+        }
+      }, 100)
+    }
+  }
+
+  const now = new Date()
+  const week = ['日','月','火','水','木','金','土']
+  const todayLabel = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${week[now.getDay()]}）`
+
+  if (loading) return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:'14px', color:'#666' }}>
+      読み込み中...
+    </div>
+  )
+
+  return (
+    <div className="wrap">
+      <div className="header">
+        <div className="title-text">FRe:x Design inc. | 工程管理表</div>
+        <div className="controls">
+          <a href="https://frex-design.github.io/Accommodation-management/" target="_blank" rel="noopener" className="btn">出張宿泊管理システム</a>
+          <span className="today-disp">{todayLabel}</span>
+          <select value={year} onChange={handleYearChange}>
+            {years.map(y => <option key={y} value={y}>{y}年度</option>)}
+            <option value="__add__">＋ {Math.max(...years)+1}年度を追加</option>
+          </select>
+          <button className="btn" onClick={() => window._openModal('staff')}>+ 社員追加</button>
+          <button className="btn" onClick={() => window._openModal('partner')}>+ 協力会社追加</button>
+          <button className="btn" onClick={() => window._openModal('car')}>+ 社用車追加</button>
+          <button className="btn" onClick={() => window._openModal('job')}>+ 業務追加</button>
+        </div>
+      </div>
+
+      <SummaryRow jobs={jobs} bars={bars} year={year} />
+      <Legend jobs={jobs} today={TODAY} onEdit={(j) => window._openJobEdit(j)} />
+
+      <div className="hint">セルをクリック → 工程登録　／　バー端をドラッグ → 期間変更　／　バー中央をドラッグ → 移動</div>
+
+      <div className="gantt-outer">
+        <div className="gantt-header" ref={headerRef} onScroll={onHeaderScroll}>
+          <GanttHeader days={days} memos={memos} today={TODAY} onMemoClick={(key,lbl) => window._openMemo(key,lbl)} />
+        </div>
+        <div className="gantt-main" ref={mainRef} onScroll={onMainScroll}>
+          <GanttBody
+            days={days} year={year} today={TODAY}
+            jobs={jobs} staff={staff} cars={cars}
+            bars={bars} carBars={carBars}
+            setBars={setBars} setCarBars={setCarBars}
+            onRefresh={fetchAll}
+          />
+        </div>
+      </div>
+      <Modals jobs={jobs} staff={staff} cars={cars} onRefresh={fetchAll} />
+    </div>
+  )
+}
