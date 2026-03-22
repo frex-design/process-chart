@@ -383,8 +383,9 @@ function scrollToTarget(){
   const main=document.getElementById('ganttMain');
   if(!main)return;
   if(YEAR===nowYear){
-    const ti=days.findIndex(d=>ds(d)===todayStr);
-    if(ti>0)setTimeout(()=>{main.scrollLeft=Math.max(0,(ti-7)*COL);},80);
+    // 当月の最初の日にスクロール
+    const monthStart=days.findIndex(d=>d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear());
+    if(monthStart>=0)setTimeout(()=>{main.scrollLeft=Math.max(0,monthStart*COL);},80);
   } else {
     setTimeout(()=>{main.scrollLeft=0;},80);
   }
@@ -635,7 +636,7 @@ function personRow(s,cdMap,mSpans,allH){
       const si=Math.max(0,dayIdx(b.start));if(si!==di)return;
       const ei=Math.min(days.length-1,dayIdx(b.end)),w=(ei-si+1)*COL-2,c=jc(b.jobId);
       const jn=(jobs.find(x=>x.id===b.jobId)||{name:'?'}).name,sn=jn.length>5?jn.slice(0,5)+'…':jn;
-      ins+=`<div class="${barCls}" id="bar-${b.id}" style="left:1px;top:${barTop}px;height:${barH}px;width:${w}px;background:${c.bg};color:${c.txt};font-size:${isStaff?'12px':'10px'};" data-bid="${b.id}" data-staff="${s.id}" onmouseenter="showTip(event,${b.id})" onmouseleave="hideTip()" onclick="handleBarClick(event,${b.id})">
+      ins+=`<div class="${barCls}" id="bar-${b.id}" style="left:1px;top:${barTop}px;height:${barH}px;width:${w}px;background:${c.bg};color:${c.txt};font-size:${isStaff?'12px':'10px'};" data-bid="${b.id}" data-staff="${s.id}" onmouseenter="showTip(event,${b.id})" onmouseleave="hideTip()">
         <div class="rh" data-bid="${b.id}" data-side="l">|</div>
         <div class="bar-label">${isStaff?b.phase+' / '+sn:cat==='bossy'?b.phase+' / '+sn:sn}</div>
         <div class="rh" data-bid="${b.id}" data-side="r">|</div>
@@ -664,7 +665,7 @@ function carRow(car,mSpans,allH){
       const si=Math.max(0,dayIdx(b.start));if(si!==di)return;
       const ei=Math.min(days.length-1,dayIdx(b.end)),w=(ei-si+1)*COL-2,c=jc(b.jobId);
       const jn=(jobs.find(x=>x.id===b.jobId)||{name:'?'}).name,sn=jn.length>7?jn.slice(0,7)+'…':jn;
-      ins+=`<div class="bar-sm" id="carbar-${b.id}" style="left:1px;width:${w}px;background:${c.bg};color:${c.txt};" data-cbid="${b.id}" data-car="${car.id}" onmouseenter="showCarTip(event,${b.id})" onmouseleave="hideTip()" onclick="handleCarBarClick(event,${b.id})">
+      ins+=`<div class="bar-sm" id="carbar-${b.id}" style="left:1px;width:${w}px;background:${c.bg};color:${c.txt};" data-cbid="${b.id}" data-car="${car.id}" onmouseenter="showCarTip(event,${b.id})" onmouseleave="hideTip()">
         <div class="rh" data-cbid="${b.id}" data-side="l">|</div>
         <div class="bar-label">${sn}</div>
         <div class="rh" data-cbid="${b.id}" data-side="r">|</div>
@@ -675,82 +676,65 @@ function carRow(car,mSpans,allH){
   return html+`</tr>`;
 }
 function initDrag(){
-  ['ganttHead','ganttBody'].forEach(id=>{
+  const containers=['ganttHead','ganttBody'];
+  containers.forEach(id=>{
     const inner=document.getElementById(id);
     if(!inner)return;
     inner.addEventListener('mousedown',e=>{
-      const rh=e.target.closest('.rh'),barEl=e.target.closest('.bar,.bar-sm');
+      const rh=e.target.closest('.rh');
+      const barEl=e.target.closest('.bar,.bar-sm');
+      if(!rh&&!barEl)return;
+      e.preventDefault();
+      const bid=rh?rh.dataset.bid:barEl.dataset.bid;
+      const cbid=rh?rh.dataset.cbid:barEl.dataset.cbid;
       if(rh){
-        e.preventDefault();e.stopPropagation();
-        const bid=rh.dataset.bid?parseInt(rh.dataset.bid):null;
-        const cbid=rh.dataset.cbid?parseInt(rh.dataset.cbid):null;
         const side=rh.dataset.side;
-        if(bid){
-          const b=bars.find(x=>x.id===bid);if(!b)return;
-          dragState={type:'resize',kind:'bar',bid,side,b,origStart:b.start,origEnd:b.end,startX:e.clientX};
-          document.getElementById('bar-'+bid)?.classList.add('dragging');
-        } else if(cbid){
-          const b=carBars.find(x=>x.id===cbid);if(!b)return;
-          dragState={type:'resize',kind:'carbar',cbid,side,b,origStart:b.start,origEnd:b.end,startX:e.clientX};
-          document.getElementById('carbar-'+cbid)?.classList.add('dragging');
-        }
-        hideTip();return;
+        if(bid){const b=bars.find(x=>x.id===parseInt(bid));if(!b)return;dragState={type:'resize',kind:'bar',bid:parseInt(bid),side,b,origStart:b.start,origEnd:b.end,startX:e.clientX};}
+        else if(cbid){const b=carBars.find(x=>x.id===parseInt(cbid));if(!b)return;dragState={type:'resize',kind:'carbar',cbid:parseInt(cbid),side,b,origStart:b.start,origEnd:b.end,startX:e.clientX};}
+      } else {
+        if(bid){const b=bars.find(x=>x.id===parseInt(bid));if(!b)return;dragState={type:'move',kind:'bar',bid:parseInt(bid),b,origStart:b.start,origEnd:b.end,startX:e.clientX,moved:false};}
+        else if(cbid){const b=carBars.find(x=>x.id===parseInt(cbid));if(!b)return;dragState={type:'move',kind:'carbar',cbid:parseInt(cbid),b,origStart:b.start,origEnd:b.end,startX:e.clientX,moved:false};}
       }
-      if(barEl){
-        e.preventDefault();e.stopPropagation();
-        const bid=barEl.dataset.bid?parseInt(barEl.dataset.bid):null;
-        const cbid=barEl.dataset.cbid?parseInt(barEl.dataset.cbid):null;
-        if(bid){
-          const b=bars.find(x=>x.id===bid);if(!b)return;
-          dragState={type:'move',kind:'bar',bid,b,origStart:b.start,origEnd:b.end,origStaff:b.staffId,startX:e.clientX,moved:false};
-          barEl.classList.add('dragging');hideTip();
-          const c=jc(b.jobId),jn=(jobs.find(x=>x.id===b.jobId)||{name:'?'}).name;
-          const sn=jn.length>8?jn.slice(0,8)+'…':jn;
-          const ghost=document.getElementById('dragGhost');
-          ghost.style.background=c.bg;ghost.style.color=c.txt;
-          ghost.innerHTML=`<span class="ghost-label">${sn}　${b.phase}</span>`;
-          ghost.style.display='flex';ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';
-        } else if(cbid){
-          const b=carBars.find(x=>x.id===cbid);if(!b)return;
-          dragState={type:'move',kind:'carbar',cbid,b,origStart:b.start,origEnd:b.end,origCar:b.carId,startX:e.clientX,moved:false};
-          barEl.classList.add('dragging');hideTip();
-          const c=jc(b.jobId),jn=(jobs.find(x=>x.id===b.jobId)||{name:'?'}).name;
-          const sn=jn.length>8?jn.slice(0,8)+'…':jn;
-          const ghost=document.getElementById('dragGhost');
-          ghost.style.background=c.bg;ghost.style.color=c.txt;
-          ghost.innerHTML=`<span class="ghost-label">${sn}</span>`;
-          ghost.style.display='flex';ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';
-        }
-        return;
-      }
+      hideTip();
     });
     inner.addEventListener('click',e=>{
+      // ドラッグ移動後は無視
+      if(dragState&&dragState.moved){dragState=null;return;}
       const barEl=e.target.closest('.bar,.bar-sm');
-      if(barEl) return; // バーはonclickで処理済み
       const rh=e.target.closest('.rh');
-      if(rh) return;
-      if(dragState&&dragState.moved) return; // ドラッグ移動後は無視
-      const cell=e.target.closest('.day-cell,.day-cell-sm');
-      if(cell){
-        const carId=cell.dataset.car;
-        const di=parseInt(cell.dataset.di);
-        if(carId){openCarBarModal({carId:parseInt(carId),start:ds(days[di]),end:ds(days[di])});return;}
-        const sid=parseInt(cell.dataset.staff);
-        if(partners.driver.find(x=>x.id===sid)){
-          pendingBar={staffId:sid,start:ds(days[di]),end:ds(days[di])};
-          openDriverBarModal();return;
-        }
-        pendingBar={staffId:sid,start:ds(days[di]),end:ds(days[di])};
-        openNewBarModal();
+      if(rh){dragState=null;return;}
+      // バーのクリック→編集
+      if(barEl){
+        dragState=null;
+        const cbid=barEl.dataset.cbid;
+        const bid=barEl.dataset.bid;
+        if(cbid)openCarBarDetail(parseInt(cbid));
+        else if(bid)openBarDetail(parseInt(bid));
+        return;
       }
+      // セルのクリック→登録
+      dragState=null;
+      const cell=e.target.closest('.day-cell,.day-cell-sm');
+      if(!cell)return;
+      const carId=cell.dataset.car;
+      const di=parseInt(cell.dataset.di);
+      if(isNaN(di))return;
+      if(carId){openCarBarModal({carId:parseInt(carId),start:ds(days[di]),end:ds(days[di])});return;}
+      const sid=parseInt(cell.dataset.staff);
+      if(isNaN(sid))return;
+      if(partners.driver.find(x=>x.id===sid)){
+        pendingBar={staffId:sid,start:ds(days[di]),end:ds(days[di])};
+        openDriverBarModal();return;
+      }
+      pendingBar={staffId:sid,start:ds(days[di]),end:ds(days[di])};
+      openNewBarModal();
     });
   });
   document.addEventListener('mousemove',e=>{
     if(!dragState)return;
-    const ghost=document.getElementById('dragGhost');
+    const dx=e.clientX-dragState.startX,delta=Math.round(dx/COL);
+    if(Math.abs(dx)>5)dragState.moved=true;
     if(dragState.type==='move'){
-      const dx=e.clientX-dragState.startX,delta=Math.round(dx/COL);
-      if(Math.abs(dx)>8)dragState.moved=true;
       const si=dayIdx(dragState.origStart),ei=dayIdx(dragState.origEnd),dur=ei-si;
       const nsi=Math.max(0,Math.min(days.length-1-dur,si+delta));
       dragState.b.start=ds(days[nsi]);dragState.b.end=ds(days[nsi+dur]);
@@ -760,40 +744,30 @@ function initDrag(){
         const bEl=document.getElementById('bar-'+dragState.bid);
         if(bEl){const n=dayIdx(dragState.b.start),m=dayIdx(dragState.b.end);bEl.style.width=((m-n+1)*COL-2)+'px';}
       } else {
-        // carbar: 配車間移動
         const el=document.elementFromPoint(e.clientX,e.clientY),td=el&&el.closest('[data-car]');
         if(td){const nc=parseInt(td.dataset.car);if(nc&&cars.find(c=>c.id===nc))dragState.b.carId=nc;}
         const bEl=document.getElementById('carbar-'+dragState.cbid);
         if(bEl){const n=dayIdx(dragState.b.start),m=dayIdx(dragState.b.end);bEl.style.width=((m-n+1)*COL-2)+'px';}
       }
-      ghost.style.left=e.clientX+'px';ghost.style.top=(e.clientY-16)+'px';
-      return;
     }
     if(dragState.type==='resize'){
-      const dx=e.clientX-dragState.startX,delta=Math.round(dx/COL),b=dragState.b;
-      if(dragState.side==='r'){b.end=ds(days[Math.max(dayIdx(dragState.origStart),Math.min(days.length-1,dayIdx(dragState.origEnd)+delta))]);}
-      else{b.start=ds(days[Math.min(dayIdx(dragState.origEnd),Math.max(0,dayIdx(dragState.origStart)+delta))]);}
+      const b=dragState.b;
+      if(dragState.side==='r')b.end=ds(days[Math.max(dayIdx(dragState.origStart),Math.min(days.length-1,dayIdx(dragState.origEnd)+delta))]);
+      else b.start=ds(days[Math.min(dayIdx(dragState.origEnd),Math.max(0,dayIdx(dragState.origStart)+delta))]);
       const elId=dragState.kind==='carbar'?'carbar-'+dragState.cbid:'bar-'+dragState.bid;
       const bEl=document.getElementById(elId);
       if(bEl){const n=dayIdx(b.start),m=dayIdx(b.end);bEl.style.width=((m-n+1)*COL-2)+'px';}
-      return;
     }
   });
   document.addEventListener('mouseup',e=>{
     if(!dragState)return;
-    const cleanup=()=>{
-      document.querySelectorAll('.bar.dragging,.bar-sm.dragging').forEach(el=>el.classList.remove('dragging'));
-      document.getElementById('dragGhost').style.display='none';
-    };
-    if(dragState.type==='move'){
-      if(!dragState.moved){
-        cleanup();dragState=null;return;
-      }
-      cleanup();dragState=null;saveBarsToStore();renderSummary();renderGanttKeepScroll();return;
+    document.querySelectorAll('.bar.dragging,.bar-sm.dragging').forEach(el=>el.classList.remove('dragging'));
+    document.getElementById('dragGhost').style.display='none';
+    if(dragState.moved){
+      const ds2=dragState;dragState=null;
+      saveBarsToStore();renderSummary();renderGanttKeepScroll();
     }
-    if(dragState.type==='resize'){
-      cleanup();dragState=null;saveBarsToStore();renderSummary();renderGanttKeepScroll();return;
-    }
+    // movedでない場合はclickイベントに任せる
   });
 }
 function handleBarClick(e,bid){
