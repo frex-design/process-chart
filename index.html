@@ -130,7 +130,7 @@ table{border-collapse:collapse;table-layout:fixed;}
 <body>
 <div class="wrap">
   <div class="header">
-    <div class="title-text">FRe:x Design inc. | 工程管理表</div>
+    <div class="title-text">FRe:x Design inc. | 工程管理表　<span id="yearDisp" style="font-size:13px;color:#888;font-weight:400;"></span></div>
     <div class="controls">
       <a href="https://frex-design.github.io/Accommodation-management/" target="_blank" rel="noopener" class="btn" style="text-decoration:none;">出張宿泊管理システム</a>
       <div id="todayDisp" style="font-size:12px;color:#666;font-weight:400;margin-right:4px;"></div>
@@ -398,6 +398,7 @@ function onYearChange(sel){
     renderYearSel();
     buildDays(YEAR);initBars();
     todayStr=ds(new Date());
+    document.getElementById('yearDisp').textContent=`${YEAR}年度`;
     renderLegend();renderSummary();
     renderGantt();scrollToTarget();
   } else {
@@ -405,6 +406,7 @@ function onYearChange(sel){
     buildDays(YEAR);initBars();
     renderYearSel();
     todayStr=ds(new Date());
+    document.getElementById('yearDisp').textContent=`${YEAR}年度`;
     renderLegend();renderSummary();
     renderGantt();scrollToTarget();
   }
@@ -417,8 +419,9 @@ function init(){
   const week=['日','月','火','水','木','金','土'];
   document.getElementById('todayDisp').textContent=
     `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${week[now.getDay()]}）`;
+  document.getElementById('yearDisp').textContent=`${YEAR}年度`;
   renderLegend();renderSummary();renderGantt();
-  setTimeout(()=>scrollToTarget(),200);
+  setTimeout(()=>scrollToTarget(),300);
 }
 function renderLegend(){
   const todayDStr=ds(new Date());
@@ -722,11 +725,11 @@ function initDrag(){
       }
     });
     inner.addEventListener('click',e=>{
-      if(dragState) return;
       const barEl=e.target.closest('.bar,.bar-sm');
       if(barEl) return; // バーはonclickで処理済み
       const rh=e.target.closest('.rh');
       if(rh) return;
+      if(dragState&&dragState.moved) return; // ドラッグ移動後は無視
       const cell=e.target.closest('.day-cell,.day-cell-sm');
       if(cell){
         const carId=cell.dataset.car;
@@ -795,12 +798,14 @@ function initDrag(){
 }
 function handleBarClick(e,bid){
   e.stopPropagation();
-  if(dragState&&dragState.moved) return; // ドラッグ中は無視
+  if(dragState&&dragState.moved) return;
+  dragState=null;
   openBarDetail(bid);
 }
 function handleCarBarClick(e,cbid){
   e.stopPropagation();
   if(dragState&&dragState.moved) return;
+  dragState=null;
   openCarBarDetail(cbid);
 }
 function openNewBarModal(){
@@ -1192,7 +1197,7 @@ function dpClear(){
 }
 
 init();
-window.addEventListener('load',()=>setTimeout(()=>scrollToTarget(),300));
+window.addEventListener('load',()=>setTimeout(()=>scrollToTarget(),400));
 </script>
 </body>
 </html>
