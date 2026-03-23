@@ -14,7 +14,7 @@ function Tooltip({ job, x, y }) {
       position: 'fixed', left: x + 12, top: y - 10, zIndex: 1000,
       background: '#fff', border: '0.5px solid #ccc', borderRadius: 8,
       padding: '8px 10px', fontSize: 11, pointerEvents: 'none',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.12)', maxWidth: 220
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12)', maxWidth: 280, whiteSpace: 'nowrap'
     }}>
       <div style={{ fontWeight: 500, marginBottom: 4 }}>{job.name}</div>
       {lines.map((l, i) => <div key={i} style={{ color: '#555' }}>{l}</div>)}
