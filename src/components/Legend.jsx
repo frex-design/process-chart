@@ -1,6 +1,30 @@
+import { useState } from 'react'
 import { jobColor, ds } from '../lib/utils'
 
+function Tooltip({ job, x, y }) {
+  if (!job) return null
+  const lines = []
+  if (job.contract_start || job.contract_end)
+    lines.push(`契約工期：${job.contract_start || '—'} 〜 ${job.contract_end || '—'}`)
+  if (job.submit_date)
+    lines.push(`提出日：${job.submit_date}`)
+  if (lines.length === 0) return null
+  return (
+    <div style={{
+      position: 'fixed', left: x + 12, top: y - 10, zIndex: 1000,
+      background: '#fff', border: '0.5px solid #ccc', borderRadius: 8,
+      padding: '8px 10px', fontSize: 11, pointerEvents: 'none',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12)', maxWidth: 220
+    }}>
+      <div style={{ fontWeight: 500, marginBottom: 4 }}>{job.name}</div>
+      {lines.map((l, i) => <div key={i} style={{ color: '#555' }}>{l}</div>)}
+    </div>
+  )
+}
+
 export default function Legend({ jobs, today, onEdit }) {
+  const [tip, setTip] = useState(null) // {job, x, y}
+
   const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
   const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
 
@@ -16,7 +40,13 @@ export default function Legend({ jobs, today, onEdit }) {
     <>
       <div className="legend">
         {activeJobs.map(j => (
-          <div key={j.id} className="legend-item" onClick={() => onEdit(j)}>
+          <div
+            key={j.id} className="legend-item"
+            onClick={() => onEdit(j)}
+            onMouseEnter={e => setTip({ job: j, x: e.clientX, y: e.clientY })}
+            onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
+            onMouseLeave={() => setTip(null)}
+          >
             <div className="legend-dot" style={{ background: jobColor(j.id, jobs) }} />
             {j.name}
           </div>
@@ -29,7 +59,13 @@ export default function Legend({ jobs, today, onEdit }) {
             <span key={yr} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
               <span style={{ fontSize: 10, color: '#bbb' }}>{yr}年度</span>
               {byYear[yr].map(j => (
-                <span key={j.id} className="legend-item" style={{ color: '#aaa' }} onClick={() => onEdit(j)}>
+                <span
+                  key={j.id} className="legend-item" style={{ color: '#aaa' }}
+                  onClick={() => onEdit(j)}
+                  onMouseEnter={e => setTip({ job: j, x: e.clientX, y: e.clientY })}
+                  onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
+                  onMouseLeave={() => setTip(null)}
+                >
                   <span className="legend-dot" style={{ background: '#ccc', display: 'inline-block' }} />
                   {j.name}
                 </span>
@@ -38,6 +74,7 @@ export default function Legend({ jobs, today, onEdit }) {
           ))}
         </div>
       )}
+      {tip && <Tooltip job={tip.job} x={tip.x} y={tip.y} />}
     </>
   )
 }
