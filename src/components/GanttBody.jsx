@@ -65,7 +65,12 @@ export default function GanttBody({
 
   // バーのドラッグ
   function onBarMouseDown(e, bar, kind) {
-    if (readOnly) return
+    if (readOnly) {
+      // スマホ：タップで編集ポップアップを開く
+      if (kind === 'bar') window._openBarDetail(bar)
+      else window._openCarBarDetail(bar)
+      return
+    }
     e.preventDefault(); e.stopPropagation()
     const rh = e.target.closest('.rh')
     const side = rh ? rh.dataset.side : null
