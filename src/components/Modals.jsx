@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { PHASES, ds } from '../lib/utils'
 import DatePicker from './DatePicker'
 
-export default function Modals({ jobs, staff, cars, onRefresh }) {
+export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
   const [modal, setModal] = useState(null) // {type, data}
   const [form, setForm] = useState({})
   const [memos, setMemos] = useState({})
@@ -17,7 +17,7 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
     window._openCarBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'carBar', data }) }
     window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase || '', start: bar.start_date, end: bar.end_date }); setModal({ type: 'barDetail', data: bar }) }
     window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id, start: bar.start_date, end: bar.end_date }); setModal({ type: 'carBarDetail', data: bar }) }
-    window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '' }); setModal({ type: 'jobEdit', data: job }) }
+    window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '', customerId: job.customer_id || '' }); setModal({ type: 'jobEdit', data: job }) }
     window._openPersonEdit = (person, cat) => { setForm({ name: person.name }); setModal({ type: 'personEdit', data: { ...person, cat } }) }
     window._openCarEdit = (car) => { setForm({ name: car.name }); setModal({ type: 'carEdit', data: car }) }
     window._openMemo = (key, lbl) => { setForm({ content: window._memos?.[key] || '' }); setModal({ type: 'memo', data: { key, lbl } }) }
@@ -105,7 +105,13 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
 
   async function saveJob() {
     if (!form.name) { alert('業務名を入力してください'); return }
-    const payload = { name: form.name, contract_start: form.contractStart || null, contract_end: form.contractEnd || null, submit_date: form.submitDate || null }
+    const payload = {
+      name: form.name,
+      contract_start: form.contractStart || null,
+      contract_end: form.contractEnd || null,
+      submit_date: form.submitDate || null,
+      customer_id: form.customerId ? parseInt(form.customerId) : null
+    }
     if (modal.type === 'jobEdit') {
       await supabase.from('jobs').update(payload).eq('id', modal.data.id)
     } else {
@@ -140,7 +146,11 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
     onRefresh(); close()
   }
 
-  async function saveCar() {
+  async function saveCustomer() {
+    if (!form.name) { alert('顧客名を入力してください'); return }
+    await supabase.from('customers').insert({ name: form.name })
+    onRefresh(); close()
+  }
     if (!form.name) { alert('車両名を入力してください'); return }
     if (modal.type === 'carEdit') {
       await supabase.from('cars').update({ name: form.name }).eq('id', modal.data.id)
@@ -296,6 +306,13 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
         {(type === 'job' || type === 'jobEdit') && <>
           <div className="modal-title">{type === 'jobEdit' ? '業務を編集' : '業務を追加'}</div>
           <div className="form-row"><label className="form-label">業務名</label><input value={form.name || ''} onChange={e => f('name', e.target.value)} /></div>
+          <div className="form-row">
+            <label className="form-label">顧客名</label>
+            <select value={form.customerId || ''} onChange={e => f('customerId', e.target.value)}>
+              <option value="">（未選択）</option>
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
           <div className="form-row"><label className="form-label">契約工期（開始）</label><DatePicker value={form.contractStart} onChange={v => f('contractStart', v)} /></div>
           <div className="form-row"><label className="form-label">契約工期（終了）</label><DatePicker value={form.contractEnd} onChange={v => f('contractEnd', v)} /></div>
           <div className="form-row"><label className="form-label">提出日</label><DatePicker value={form.submitDate} onChange={v => f('submitDate', v)} /></div>
@@ -303,6 +320,16 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
             {type === 'jobEdit' && <button className="btn btn-danger" onClick={deleteJob} style={{ marginRight: 'auto' }}>削除</button>}
             <button className="btn" onClick={close}>キャンセル</button>
             <button className="btn btn-primary" onClick={saveJob}>保存</button>
+          </div>
+        </>}
+
+        {/* 顧客追加 */}
+        {type === 'customer' && <>
+          <div className="modal-title">顧客を追加</div>
+          <div className="form-row"><label className="form-label">顧客名</label><input value={form.name || ''} onChange={e => f('name', e.target.value)} placeholder="例：○○市役所" /></div>
+          <div className="modal-actions">
+            <button className="btn" onClick={close}>キャンセル</button>
+            <button className="btn btn-primary" onClick={saveCustomer}>追加</button>
           </div>
         </>}
 

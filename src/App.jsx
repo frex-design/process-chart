@@ -19,6 +19,7 @@ export default function App() {
   const [jobs, setJobs] = useState([])
   const [staff, setStaff] = useState([])
   const [cars, setCars] = useState([])
+  const [customers, setCustomers] = useState([])
   const [bars, setBars] = useState([])
   const [carBars, setCarBars] = useState([])
   const [memos, setMemos] = useState({})
@@ -58,10 +59,11 @@ export default function App() {
   async function fetchAll() {
     const scrollX = mainRef.current ? mainRef.current.scrollLeft : -1
     setLoading(true)
-    const [j, s, c, b, cb, m, y] = await Promise.all([
+    const [j, s, c, cu, b, cb, m, y] = await Promise.all([
       supabase.from('jobs').select('*').order('id'),
       supabase.from('staff').select('*').order('sort_order'),
       supabase.from('cars').select('*').order('sort_order'),
+      supabase.from('customers').select('*').order('sort_order'),
       supabase.from('bars').select('*'),
       supabase.from('car_bars').select('*'),
       supabase.from('memos').select('*'),
@@ -70,6 +72,7 @@ export default function App() {
     if (j.data) setJobs(j.data)
     if (s.data) setStaff(s.data)
     if (c.data) setCars(c.data)
+    if (cu.data) setCustomers(cu.data)
     if (b.data) setBars(b.data)
     if (cb.data) setCarBars(cb.data)
     if (m.data) {
@@ -91,6 +94,7 @@ export default function App() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => fetchJobs())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'staff' }, () => fetchStaff())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'cars' }, () => fetchCars())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, () => fetchCustomers())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'memos' }, () => fetchMemos())
       .subscribe()
   }
@@ -114,6 +118,10 @@ export default function App() {
   async function fetchCars() {
     const { data } = await supabase.from('cars').select('*').order('sort_order')
     if (data) setCars(data)
+  }
+  async function fetchCustomers() {
+    const { data } = await supabase.from('customers').select('*').order('sort_order')
+    if (data) setCustomers(data)
   }
   async function fetchMemos() {
     const { data } = await supabase.from('memos').select('*')
@@ -184,14 +192,21 @@ export default function App() {
           </select>
           {!IS_MOBILE && <>
             <button className="btn" onClick={() => window._openModal('staff')}>+ 社員追加</button>
+            <button className="btn" onClick={() => window._openModal('customer')}>+ 顧客追加</button>
             <button className="btn" onClick={() => window._openModal('partner')}>+ 協力会社追加</button>
             <button className="btn" onClick={() => window._openModal('car')}>+ 社用車追加</button>
-            <button className="btn" onClick={() => window._openModal('job')}>+ 業務追加</button>
           </>}
         </div>
       </div>
 
-      {!IS_MOBILE && <SummaryRow jobs={jobs} bars={bars} staff={staff} year={year} />}
+      {!IS_MOBILE && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+          <button className="btn btn-primary" onClick={() => window._openModal('job')}>+ 業務追加</button>
+          <div style={{ flex: 1 }}>
+            <SummaryRow jobs={jobs} bars={bars} staff={staff} year={year} />
+          </div>
+        </div>
+      )}
       {!IS_MOBILE && <Legend jobs={jobs} today={TODAY} onEdit={(j) => window._openJobEdit(j)} />}
       {!IS_MOBILE && <div className="hint">セルをクリック → 工程登録　／　バー端をドラッグ → 期間変更　／　バー中央をドラッグ → 移動</div>}
 
@@ -211,7 +226,7 @@ export default function App() {
           />
         </div>
       </div>
-      <Modals jobs={jobs} staff={staff} cars={cars} onRefresh={fetchAll} />
+      <Modals jobs={jobs} staff={staff} cars={cars} customers={customers} onRefresh={fetchAll} />
     </div>
   )
 }
