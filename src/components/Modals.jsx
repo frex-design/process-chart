@@ -15,7 +15,18 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
     window._openNewBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setSelectedPhase(''); setModal({ type: 'newBar', data }) }
     window._openDriverBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'driverBar', data }) }
     window._openCarBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'carBar', data }) }
-    window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase || '', start: bar.start_date, end: bar.end_date, customerId: bar.customer_id || '' }); setModal({ type: 'barDetail', data: bar }) }
+    window._openBarDetail = (bar) => {
+      const isPreset = PHASES.includes(bar.phase)
+      setForm({
+        jobId: bar.job_id,
+        phase: isPreset ? bar.phase : '',
+        customPhase: isPreset ? '' : (bar.phase || ''),
+        start: bar.start_date,
+        end: bar.end_date,
+        customerId: bar.customer_id || ''
+      })
+      setModal({ type: 'barDetail', data: bar })
+    }
     window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id, start: bar.start_date, end: bar.end_date }); setModal({ type: 'carBarDetail', data: bar }) }
     window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '', customerId: job.customer_id || '' }); setModal({ type: 'jobEdit', data: job }) }
     window._openPersonEdit = (person, cat) => { setForm({ name: person.name }); setModal({ type: 'personEdit', data: { ...person, cat } }) }
@@ -71,9 +82,10 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
   async function saveBarDetail() {
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
+    const phase = form.customPhase?.trim() || form.phase || ''
     await supabase.from('bars').update({
       job_id: parseInt(form.jobId),
-      phase: form.phase || '',
+      phase,
       start_date: form.start,
       end_date: form.end,
       customer_id: form.customerId ? parseInt(form.customerId) : null
@@ -295,9 +307,21 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
           {data.phase !== '' && (
             <div className="form-row">
               <label className="form-label">工程</label>
-              <select value={form.phase || ''} onChange={e => f('phase', e.target.value)}>
-                {PHASES.map(ph => <option key={ph}>{ph}</option>)}
-              </select>
+              <div className="phase-grid">
+                {PHASES.map(ph => (
+                  <div
+                    key={ph}
+                    className={'phase-opt' + (form.phase === ph && !form.customPhase ? ' selected' : '')}
+                    onClick={() => { f('phase', ph); f('customPhase', '') }}
+                  >{ph}</div>
+                ))}
+              </div>
+              <input
+                style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+                placeholder="自由記入（入力するとこちらが優先されます）"
+                value={form.customPhase || ''}
+                onChange={e => { f('customPhase', e.target.value); if (e.target.value) f('phase', '') }}
+              />
             </div>
           )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
