@@ -151,6 +151,8 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
     await supabase.from('customers').insert({ name: form.name })
     onRefresh(); close()
   }
+
+  async function saveCar() {
     if (!form.name) { alert('車両名を入力してください'); return }
     if (modal.type === 'carEdit') {
       await supabase.from('cars').update({ name: form.name }).eq('id', modal.data.id)
