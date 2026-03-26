@@ -147,9 +147,21 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
   }
 
   async function saveCustomer() {
-    if (!form.name) { alert('顧客名を入力してください'); return }
-    await supabase.from('customers').insert({ name: form.name })
-    onRefresh(); close()
+    if (!form.customerName) { alert('顧客名を入力してください'); return }
+    if (form.editCustomerId) {
+      await supabase.from('customers').update({ name: form.customerName }).eq('id', form.editCustomerId)
+    } else {
+      await supabase.from('customers').insert({ name: form.customerName })
+    }
+    f('customerName', '')
+    f('editCustomerId', null)
+    onRefresh()
+  }
+
+  async function deleteCustomer(id) {
+    if (!confirm('この顧客を削除しますか？')) return
+    await supabase.from('customers').delete().eq('id', id)
+    onRefresh()
   }
 
   async function saveCar() {
@@ -325,13 +337,47 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
           </div>
         </>}
 
-        {/* 顧客追加 */}
+        {/* 顧客管理 */}
         {type === 'customer' && <>
-          <div className="modal-title">顧客を追加</div>
-          <div className="form-row"><label className="form-label">顧客名</label><input value={form.name || ''} onChange={e => f('name', e.target.value)} placeholder="例：○○市役所" /></div>
-          <div className="modal-actions">
-            <button className="btn" onClick={close}>キャンセル</button>
-            <button className="btn btn-primary" onClick={saveCustomer}>追加</button>
+          <div className="modal-title">顧客管理</div>
+          {/* 顧客一覧 */}
+          {customers.length > 0 && (
+            <div style={{ marginBottom: 12, maxHeight: 200, overflowY: 'auto', border: '0.5px solid #eee', borderRadius: 8 }}>
+              {customers.map(c => (
+                <div key={c.id} style={{ display: 'flex', alignItems: 'center', padding: '6px 10px', borderBottom: '0.5px solid #f0f0f0', gap: 8 }}>
+                  <span style={{ flex: 1, fontSize: 12 }}>{c.name}</span>
+                  <button
+                    className="btn" style={{ fontSize: 11, padding: '2px 8px', height: 'auto' }}
+                    onClick={() => { f('customerName', c.name); f('editCustomerId', c.id) }}
+                  >編集</button>
+                  <button
+                    className="btn btn-danger" style={{ fontSize: 11, padding: '2px 8px', height: 'auto' }}
+                    onClick={() => deleteCustomer(c.id)}
+                  >削除</button>
+                </div>
+              ))}
+            </div>
+          )}
+          {customers.length === 0 && (
+            <div style={{ fontSize: 12, color: '#aaa', marginBottom: 12, textAlign: 'center' }}>顧客が登録されていません</div>
+          )}
+          {/* 追加・編集フォーム */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              style={{ flex: 1, fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+              placeholder="顧客名を入力"
+              value={form.customerName || ''}
+              onChange={e => f('customerName', e.target.value)}
+            />
+            <button className="btn btn-primary" onClick={saveCustomer}>
+              {form.editCustomerId ? '更新' : '追加'}
+            </button>
+            {form.editCustomerId && (
+              <button className="btn" onClick={() => { f('customerName', ''); f('editCustomerId', null) }}>キャンセル</button>
+            )}
+          </div>
+          <div className="modal-actions" style={{ marginTop: 14 }}>
+            <button className="btn" onClick={close}>閉じる</button>
           </div>
         </>}
 
