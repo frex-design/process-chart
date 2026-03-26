@@ -25,7 +25,15 @@ function Tooltip({ job, x, y }) {
 export default function Legend({ jobs, today, onEdit }) {
   const [tip, setTip] = useState(null) // {job, x, y}
 
-  const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
+  const BOTTOM_JOBS = ['その他', '有給休暇']
+
+  const sortJobs = (list) => {
+    const bottom = list.filter(j => BOTTOM_JOBS.includes(j.name))
+    const others = list.filter(j => !BOTTOM_JOBS.includes(j.name))
+    return [...others, ...bottom]
+  }
+
+  const activeJobs = sortJobs(jobs.filter(j => !j.contract_end || j.contract_end >= today))
   const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
 
   const byYear = {}

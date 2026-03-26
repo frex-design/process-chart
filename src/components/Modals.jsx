@@ -162,22 +162,26 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
     const yr = parseInt(key.split('-')[0])
     if (form.content?.trim()) {
       await supabase.from('memos').upsert({ year: yr, month_key: key, content: form.content, updated_at: new Date().toISOString() }, { onConflict: 'year,month_key' })
-      setMemos(prev => ({ ...prev, [key]: form.content }))
     } else {
       await supabase.from('memos').delete().match({ year: yr, month_key: key })
-      setMemos(prev => { const n = { ...prev }; delete n[key]; return n })
     }
-    close()
+    onRefresh(); close()
   }
 
   if (!modal) return null
 
   const { type, data } = modal
+  const BOTTOM_JOBS = ['その他', '有給休暇']
+  const sortedJobs = [
+    ...jobs.filter(j => !BOTTOM_JOBS.includes(j.name)),
+    ...jobs.filter(j => BOTTOM_JOBS.includes(j.name))
+  ]
+
   const jobSelect = (key = 'jobId') => (
     <div className="form-row">
       <label className="form-label">業務</label>
-      <select value={form[key] || jobs[0]?.id || ''} onChange={e => f(key, e.target.value)}>
-        {jobs.map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
+      <select value={form[key] || sortedJobs[0]?.id || ''} onChange={e => f(key, e.target.value)}>
+        {sortedJobs.map(j => <option key={j.id} value={j.id}>{j.name}</option>)}
       </select>
     </div>
   )
