@@ -38,7 +38,7 @@ export default function SummaryRow({ jobs, bars, staff, year }) {
     })
 
   return (
-    <div className="summary-row">
+    <div className="summary-row" style={{ marginBottom: 0 }}>
       <div className="sc">
         <div className="sc-label">当月の業務数</div>
         <div className="sc-val">{activeJobs.size}</div>

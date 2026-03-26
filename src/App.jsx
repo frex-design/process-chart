@@ -200,8 +200,21 @@ export default function App() {
       </div>
 
       {!IS_MOBILE && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <button className="btn btn-primary" onClick={() => window._openModal('job')}>+ 業務追加</button>
+        <div style={{ display: 'flex', alignItems: 'stretch', gap: 8, marginBottom: 12 }}>
+          <button
+            onClick={() => window._openModal('job')}
+            style={{
+              background: 'linear-gradient(135deg, #185FA5, #0e7090)',
+              color: '#fff', border: 'none', borderRadius: 10,
+              padding: '0 20px', fontSize: 13, fontWeight: 500,
+              cursor: 'pointer', whiteSpace: 'nowrap',
+              boxShadow: '0 2px 8px rgba(24,95,165,0.25)',
+              display: 'flex', alignItems: 'center', gap: 6,
+              letterSpacing: '0.03em'
+            }}
+          >
+            <span style={{ fontSize: 18, fontWeight: 300 }}>＋</span> 業務追加
+          </button>
           <div style={{ flex: 1 }}>
             <SummaryRow jobs={jobs} bars={bars} staff={staff} year={year} />
           </div>
