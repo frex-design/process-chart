@@ -1,3 +1,7 @@
+import { QRCodeSVG } from 'qrcode.react'
+
+const APP_URL = 'https://frex-design.github.io/process-chart/'
+
 export default function GuideModal({ onClose }) {
   return (
     <div
@@ -27,9 +31,26 @@ export default function GuideModal({ onClose }) {
         <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 6, color: '#1a1a1a' }}>
           📋 工程管理表 — 社員向け操作ガイド
         </h2>
-        <p style={{ fontSize: 12, color: '#888', marginBottom: 24 }}>
-          URL: https://frex-design.github.io/process-chart/
-        </p>
+
+        {/* QRコード */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 20,
+          background: '#f5f8ff', borderRadius: 10, padding: '16px 20px',
+          marginBottom: 24, border: '0.5px solid #d0e4f8'
+        }}>
+          <QRCodeSVG value={APP_URL} size={90} />
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#185FA5', marginBottom: 4 }}>
+              📱 スマホでアクセス
+            </div>
+            <div style={{ fontSize: 12, color: '#555', marginBottom: 6 }}>
+              QRコードを読み取るとすぐに開けます
+            </div>
+            <div style={{ fontSize: 11, color: '#888', wordBreak: 'break-all' }}>
+              {APP_URL}
+            </div>
+          </div>
+        </div>
 
         <Section title="📱 スマホで使う場合">
           <p>ブラウザでURLを開くだけでOKです。</p>
