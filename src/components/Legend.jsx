@@ -22,19 +22,17 @@ function Tooltip({ job, x, y }) {
   )
 }
 
+const BOTTOM_JOBS = ['その他', '有給休暇']
+
 export default function Legend({ jobs, today, onEdit }) {
-  const [tip, setTip] = useState(null) // {job, x, y}
+  const [tip, setTip] = useState(null)
 
-  const BOTTOM_JOBS = ['その他', '有給休暇']
-
-  const sortJobs = (list) => {
-    const bottom = list.filter(j => BOTTOM_JOBS.includes(j.name))
-    const others = list.filter(j => !BOTTOM_JOBS.includes(j.name))
-    return [...others, ...bottom]
-  }
-
-  const activeJobs = sortJobs(jobs.filter(j => !j.contract_end || j.contract_end >= today))
+  const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
   const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
+
+  // 通常業務と固定業務に分離
+  const normalJobs = activeJobs.filter(j => !BOTTOM_JOBS.includes(j.name))
+  const fixedJobs = activeJobs.filter(j => BOTTOM_JOBS.includes(j.name))
 
   const byYear = {}
   endedJobs.forEach(j => {
@@ -44,21 +42,33 @@ export default function Legend({ jobs, today, onEdit }) {
     byYear[yr].push(j)
   })
 
+  const LegendItem = ({ j, style = {} }) => (
+    <div
+      className="legend-item"
+      style={style}
+      onClick={() => onEdit(j)}
+      onMouseEnter={e => setTip({ job: j, x: e.clientX, y: e.clientY })}
+      onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
+      onMouseLeave={() => setTip(null)}
+    >
+      <div className="legend-dot" style={{ background: jobColor(j.id, jobs) }} />
+      {j.name}
+    </div>
+  )
+
   return (
     <>
-      <div className="legend">
-        {activeJobs.map(j => (
-          <div
-            key={j.id} className="legend-item"
-            onClick={() => onEdit(j)}
-            onMouseEnter={e => setTip({ job: j, x: e.clientX, y: e.clientY })}
-            onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
-            onMouseLeave={() => setTip(null)}
-          >
-            <div className="legend-dot" style={{ background: jobColor(j.id, jobs) }} />
-            {j.name}
+      <div className="legend" style={{ justifyContent: 'space-between' }}>
+        {/* 通常業務（左側） */}
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', flex: 1 }}>
+          {normalJobs.map(j => <LegendItem key={j.id} j={j} />)}
+        </div>
+        {/* 固定業務（右端） */}
+        {fixedJobs.length > 0 && (
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', borderLeft: '1px solid #e0e0dc', paddingLeft: 8, marginLeft: 4 }}>
+            {fixedJobs.map(j => <LegendItem key={j.id} j={j} />)}
           </div>
-        ))}
+        )}
       </div>
       {endedJobs.length > 0 && (
         <div className="legend-ended">

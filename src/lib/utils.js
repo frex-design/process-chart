@@ -20,7 +20,14 @@ export function buildDays(year) {
   return days
 }
 
+export const FIXED_JOB_COLORS = {
+  '有給休暇': '#e03030',
+  'その他': '#7b52b8'
+}
+
 export function jobColor(jobId, jobs) {
+  const job = jobs.find(x => x.id === jobId)
+  if (job && FIXED_JOB_COLORS[job.name]) return FIXED_JOB_COLORS[job.name]
   const i = jobs.findIndex(x => x.id === jobId)
   const n = (i < 0 ? 0 : i) % JOB_COLORS.length
   return JOB_COLORS[n]
