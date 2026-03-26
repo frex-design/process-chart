@@ -4,7 +4,16 @@ export default function SummaryRow({ jobs, bars, staff, year }) {
   const now = new Date()
   const mStart = ds(new Date(now.getFullYear(), now.getMonth(), 1))
   const mEnd = ds(new Date(now.getFullYear(), now.getMonth() + 1, 0))
-  const activeJobs = new Set(bars.filter(b => b.start_date <= mEnd && b.end_date >= mStart).map(b => b.job_id))
+  const EXCLUDE_JOBS = ['その他', '有給休暇']
+  const activeJobs = new Set(
+    bars
+      .filter(b => b.start_date <= mEnd && b.end_date >= mStart)
+      .filter(b => {
+        const job = jobs.find(j => j.id === b.job_id)
+        return job && !EXCLUDE_JOBS.includes(job.name)
+      })
+      .map(b => b.job_id)
+  )
 
   // スケジュール衝突チェック
   const conflictStaff = new Set()
