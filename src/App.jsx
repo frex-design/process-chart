@@ -207,6 +207,7 @@ export default function App() {
             setBars={setBars} setCarBars={setCarBars}
             onRefresh={fetchAll}
             readOnly={IS_MOBILE}
+            memos={memos}
           />
         </div>
       </div>

@@ -8,7 +8,8 @@ export default function GanttBody({
   bars, carBars,
   setBars, setCarBars,
   onRefresh,
-  readOnly = false
+  readOnly = false,
+  memos = {}
 }) {
   const [dragState, setDragState] = useState(null)
   const dragRef = useRef(null)
@@ -284,7 +285,7 @@ export default function GanttBody({
               colSpan={m.n}
               onClick={() => window._openMemo(m.k, m.lbl)}
             >
-              <div className="memo-text">{window._memos?.[m.k] || ''}</div>
+              <div className="memo-text">{memos[m.k] || ''}</div>
             </td>
           )
         })}
