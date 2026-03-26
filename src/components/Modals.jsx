@@ -283,16 +283,15 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
             {data.phase === '' ? '運転の編集' : '工程の編集'}
           </div>
           {jobSelect()}
-          <div className="form-row">
-            <label className="form-label">顧客名</label>
-            <select
-              value={form.customerId || ''}
-              onChange={e => f('customerId', e.target.value)}
-            >
-              <option value="">（未選択）</option>
-              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
+          {(() => {
+            const selectedJob = sortedJobs.find(j => j.id === parseInt(form.jobId))
+            const customer = selectedJob?.customer_id ? customers.find(c => c.id === selectedJob.customer_id) : null
+            return customer ? (
+              <div style={{ fontSize: 12, color: '#666', marginBottom: 10, padding: '4px 8px', background: '#f5f5f3', borderRadius: 6 }}>
+                顧客名：<span style={{ color: '#1a1a1a', fontWeight: 500 }}>{customer.name}</span>
+              </div>
+            ) : null
+          })()}
           {data.phase !== '' && (
             <div className="form-row">
               <label className="form-label">工程</label>
