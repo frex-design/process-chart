@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { ds, jobColor, getHolidays, COL, PHASES, overlap } from '../lib/utils'
 
@@ -12,6 +12,7 @@ export default function GanttBody({
   memos = {}
 }) {
   const [dragState, setDragState] = useState(null)
+  const [tip, setTip] = useState(null) // {text, x, y}
   const dragRef = useRef(null)
   const allH = { ...getHolidays(year), ...getHolidays(year + 1) }
 
@@ -154,6 +155,13 @@ export default function GanttBody({
         className={barCls}
         style={{ left: 1, top, height, width: w, background: color, color: '#fff', fontSize }}
         onMouseDown={e => onBarMouseDown(e, b, 'bar')}
+        onMouseEnter={e => {
+          const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
+          const text = b.phase ? `${b.phase} / ${jn}` : jn
+          setTip({ text, x: e.clientX, y: e.clientY })
+        }}
+        onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
+        onMouseLeave={() => setTip(null)}
       >
         <div className="rh" data-side="l">|</div>
         <div className="bar-label">{label}</div>
@@ -176,6 +184,13 @@ export default function GanttBody({
         className="bar-sm"
         style={{ left: 1, top: 5, height: 24, width: w, background: color, color: '#fff', fontSize: 10 }}
         onMouseDown={e => onBarMouseDown(e, b, 'carbar')}
+        onMouseEnter={e => {
+          const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
+          const car = (cars.find(x => x.id === b.car_id) || { name: '?' }).name
+          setTip({ text: `${car} / ${jn}`, x: e.clientX, y: e.clientY })
+        }}
+        onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
+        onMouseLeave={() => setTip(null)}
       >
         <div className="rh" data-side="l">|</div>
         <div className="bar-label">{sn}</div>
@@ -303,20 +318,32 @@ export default function GanttBody({
   )
 
   return (
-    <table style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-      {colgroup}
-      <tbody>
-        {sectionRow('社員', 'section-label', 'section-fill')}
-        {staffList.map(s => renderPersonRow(s, false, false))}
-        {dividerRow()}
-        {sectionRow('配車', 'section-label-car', 'section-fill-car')}
-        {cars.map(c => renderCarRow(c))}
-        {sectionRow('補助', 'section-label-partner', 'section-fill-partner')}
-        {bossyList.map(s => renderPersonRow(s, true, false))}
-        {sectionRow('運転', 'section-label-partner', 'section-fill-partner')}
-        {driverList.map(s => renderPersonRow(s, true, true))}
-        {memoRow()}
-      </tbody>
-    </table>
+    <>
+      <table style={{ borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+        {colgroup}
+        <tbody>
+          {sectionRow('社員', 'section-label', 'section-fill')}
+          {staffList.map(s => renderPersonRow(s, false, false))}
+          {dividerRow()}
+          {sectionRow('配車', 'section-label-car', 'section-fill-car')}
+          {cars.map(c => renderCarRow(c))}
+          {sectionRow('補助', 'section-label-partner', 'section-fill-partner')}
+          {bossyList.map(s => renderPersonRow(s, true, false))}
+          {sectionRow('運転', 'section-label-partner', 'section-fill-partner')}
+          {driverList.map(s => renderPersonRow(s, true, true))}
+          {memoRow()}
+        </tbody>
+      </table>
+      {tip && (
+        <div style={{
+          position: 'fixed', left: tip.x + 12, top: tip.y - 10, zIndex: 1000,
+          background: '#fff', border: '0.5px solid #ccc', borderRadius: 8,
+          padding: '6px 10px', fontSize: 12, pointerEvents: 'none',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)', whiteSpace: 'nowrap'
+        }}>
+          {tip.text}
+        </div>
+      )}
+    </>
   )
 }
