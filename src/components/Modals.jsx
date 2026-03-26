@@ -38,9 +38,10 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
   async function saveNewBar() {
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     const year = new Date(form.start).getMonth() < 3 ? new Date(form.start).getFullYear() - 1 : new Date(form.start).getFullYear()
+    const phase = form.customPhase?.trim() || selectedPhase || ''
     await supabase.from('bars').insert({
-      year, job_id: parseInt(form.jobId || sortedJobs[0]?.id),
-      phase: selectedPhase || '', staff_id: modal.data.staffId,
+      year, job_id: parseInt(form.jobId || jobs[0]?.id),
+      phase, staff_id: modal.data.staffId,
       start_date: form.start, end_date: form.end
     })
     onRefresh(); close()
@@ -167,14 +168,15 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
     onRefresh(); close()
   }
 
-  if (!modal) return null
-
-  const { type, data } = modal
   const BOTTOM_JOBS = ['その他', '有給休暇']
   const sortedJobs = [
     ...jobs.filter(j => !BOTTOM_JOBS.includes(j.name)),
     ...jobs.filter(j => BOTTOM_JOBS.includes(j.name))
   ]
+
+  if (!modal) return null
+
+  const { type, data } = modal
 
   const jobSelect = (key = 'jobId') => (
     <div className="form-row">
@@ -202,10 +204,22 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
           <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>担当：{staff.find(s => s.id === data.staffId)?.name}</div>
           {jobSelect()}
           <div className="form-row">
-            <label className="form-label">工程</label>
+            <label className="form-label">工程（任意）</label>
             <div className="phase-grid">
-              {PHASES.map(ph => <div key={ph} className={'phase-opt' + (selectedPhase === ph ? ' selected' : '')} onClick={() => setSelectedPhase(ph)}>{ph}</div>)}
+              {PHASES.map(ph => (
+                <div
+                  key={ph}
+                  className={'phase-opt' + (selectedPhase === ph && !form.customPhase ? ' selected' : '')}
+                  onClick={() => { setSelectedPhase(ph); f('customPhase', '') }}
+                >{ph}</div>
+              ))}
             </div>
+            <input
+              style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+              placeholder="自由記入（入力するとこちらが優先されます）"
+              value={form.customPhase || ''}
+              onChange={e => { f('customPhase', e.target.value); if (e.target.value) setSelectedPhase('') }}
+            />
           </div>
           {dateRange('start', 'end')}
           <div className="modal-actions">
