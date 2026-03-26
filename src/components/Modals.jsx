@@ -36,12 +36,11 @@ export default function Modals({ jobs, staff, cars, onRefresh }) {
 
   // ============ 保存処理 ============
   async function saveNewBar() {
-    if (!selectedPhase) { alert('工程を選択してください'); return }
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     const year = new Date(form.start).getMonth() < 3 ? new Date(form.start).getFullYear() - 1 : new Date(form.start).getFullYear()
     await supabase.from('bars').insert({
-      year, job_id: parseInt(form.jobId || jobs[0]?.id),
-      phase: selectedPhase, staff_id: modal.data.staffId,
+      year, job_id: parseInt(form.jobId || sortedJobs[0]?.id),
+      phase: selectedPhase || '', staff_id: modal.data.staffId,
       start_date: form.start, end_date: form.end
     })
     onRefresh(); close()
