@@ -6,6 +6,7 @@ import GanttBody from './components/GanttBody'
 import SummaryRow from './components/SummaryRow'
 import Legend from './components/Legend'
 import Modals from './components/Modals'
+import GuideModal from './components/GuideModal'
 import './App.css'
 
 const TODAY = ds(new Date())
@@ -24,6 +25,7 @@ export default function App() {
   const [carBars, setCarBars] = useState([])
   const [memos, setMemos] = useState({})
   const [loading, setLoading] = useState(true)
+  const [showGuide, setShowGuide] = useState(false)
   const headerRef = useRef(null)
   const mainRef = useRef(null)
 
@@ -185,6 +187,14 @@ export default function App() {
           {!IS_MOBILE && (
             <a href="https://frex-design.github.io/Accommodation-management/" target="_blank" rel="noopener" className="btn">出張宿泊管理システム</a>
           )}
+          <button
+            onClick={() => setShowGuide(true)}
+            style={{
+              fontSize: 12, padding: '4px 12px', border: '0.5px solid #185FA5',
+              borderRadius: 8, background: '#fff', color: '#185FA5',
+              cursor: 'pointer', height: 30
+            }}
+          >📋 操作ガイド</button>
           <span className="today-disp">{todayLabel}</span>
           <select value={year} onChange={handleYearChange}>
             {years.map(y => <option key={y} value={y}>{y}年度</option>)}
@@ -240,6 +250,7 @@ export default function App() {
         </div>
       </div>
       <Modals jobs={jobs} staff={staff} cars={cars} customers={customers} onRefresh={fetchAll} />
+      {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
     </div>
   )
 }
