@@ -24,7 +24,7 @@ function Tooltip({ job, x, y }) {
 
 const BOTTOM_JOBS = ['その他', '有給休暇']
 
-export default function Legend({ jobs, today, onEdit }) {
+export default function Legend({ jobs, today, onEdit, customers = [] }) {
   const [tip, setTip] = useState(null)
 
   const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
@@ -42,6 +42,11 @@ export default function Legend({ jobs, today, onEdit }) {
     byYear[yr].push(j)
   })
 
+  const jobLabel = (j) => {
+    const customer = customers.find(c => c.id === j.customer_id)
+    return customer ? `${j.name} -［${customer.name}］` : j.name
+  }
+
   const LegendItem = ({ j, style = {} }) => (
     <div
       className="legend-item"
@@ -52,7 +57,7 @@ export default function Legend({ jobs, today, onEdit }) {
       onMouseLeave={() => setTip(null)}
     >
       <div className="legend-dot" style={{ background: jobColor(j.id, jobs) }} />
-      {j.name}
+      {jobLabel(j)}
     </div>
   )
 

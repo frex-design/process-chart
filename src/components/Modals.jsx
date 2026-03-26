@@ -15,7 +15,7 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
     window._openNewBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setSelectedPhase(''); setModal({ type: 'newBar', data }) }
     window._openDriverBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'driverBar', data }) }
     window._openCarBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'carBar', data }) }
-    window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase || '', start: bar.start_date, end: bar.end_date }); setModal({ type: 'barDetail', data: bar }) }
+    window._openBarDetail = (bar) => { setForm({ jobId: bar.job_id, phase: bar.phase || '', start: bar.start_date, end: bar.end_date, customerId: bar.customer_id || '' }); setModal({ type: 'barDetail', data: bar }) }
     window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id, start: bar.start_date, end: bar.end_date }); setModal({ type: 'carBarDetail', data: bar }) }
     window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '', customerId: job.customer_id || '' }); setModal({ type: 'jobEdit', data: job }) }
     window._openPersonEdit = (person, cat) => { setForm({ name: person.name }); setModal({ type: 'personEdit', data: { ...person, cat } }) }
@@ -75,7 +75,8 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
       job_id: parseInt(form.jobId),
       phase: form.phase || '',
       start_date: form.start,
-      end_date: form.end
+      end_date: form.end,
+      customer_id: form.customerId ? parseInt(form.customerId) : null
     }).eq('id', modal.data.id)
     onRefresh(); close()
   }
@@ -279,9 +280,19 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
         {/* バー詳細・編集 */}
         {type === 'barDetail' && <>
           <div className="modal-title">
-            {data.phase === '' ? '運転の編集' : data.phase && !data.phase.match(/準備計画|現地踏査|踏査まとめ|定期点検|損傷図作成|調書作成/) ? '補助の編集' : '工程の編集'}
+            {data.phase === '' ? '運転の編集' : '工程の編集'}
           </div>
           {jobSelect()}
+          <div className="form-row">
+            <label className="form-label">顧客名</label>
+            <select
+              value={form.customerId || ''}
+              onChange={e => f('customerId', e.target.value)}
+            >
+              <option value="">（未選択）</option>
+              {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
           {data.phase !== '' && (
             <div className="form-row">
               <label className="form-label">工程</label>
