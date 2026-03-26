@@ -197,7 +197,7 @@ export default function App() {
 
       <div className="gantt-outer">
         <div className="gantt-header" ref={headerRef} onScroll={onHeaderScroll}>
-          <GanttHeader days={days} memos={memos} today={TODAY} onMemoClick={(key,lbl) => !IS_MOBILE && window._openMemo(key,lbl)} />
+          <GanttHeader days={days} memos={memos} today={TODAY} onMemoClick={(key,lbl) => window._openMemo(key,lbl)} />
         </div>
         <div className="gantt-main" ref={mainRef} onScroll={onMainScroll}>
           <GanttBody
