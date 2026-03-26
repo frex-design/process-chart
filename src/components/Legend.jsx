@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { jobColor, ds } from '../lib/utils'
 
 function Tooltip({ job, x, y }) {
@@ -26,6 +26,18 @@ const BOTTOM_JOBS = ['その他', '有給休暇']
 
 export default function Legend({ jobs, today, onEdit, customers = [] }) {
   const [tip, setTip] = useState(null)
+  const legendRef = useRef(null)
+
+  useEffect(() => {
+    const handleMove = (e) => {
+      if (!tip) return
+      if (legendRef.current && !legendRef.current.contains(e.target)) {
+        setTip(null)
+      }
+    }
+    document.addEventListener('mousemove', handleMove)
+    return () => document.removeEventListener('mousemove', handleMove)
+  }, [tip])
 
   const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
   const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
@@ -54,7 +66,11 @@ export default function Legend({ jobs, today, onEdit, customers = [] }) {
       onClick={() => onEdit(j)}
       onMouseEnter={e => setTip({ job: j, x: e.clientX, y: e.clientY })}
       onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
-      onMouseLeave={() => setTip(null)}
+      onMouseLeave={e => {
+        const related = e.relatedTarget
+        if (related && e.currentTarget.contains(related)) return
+        setTip(null)
+      }}
     >
       <div className="legend-dot" style={{ background: jobColor(j.id, jobs) }} />
       {jobLabel(j)}
@@ -62,7 +78,7 @@ export default function Legend({ jobs, today, onEdit, customers = [] }) {
   )
 
   return (
-    <>
+    <div ref={legendRef}>
       <div className="legend" style={{ justifyContent: 'space-between' }}>
         {/* 通常業務（左側） */}
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center', flex: 1 }}>
@@ -87,7 +103,11 @@ export default function Legend({ jobs, today, onEdit, customers = [] }) {
                   onClick={() => onEdit(j)}
                   onMouseEnter={e => setTip({ job: j, x: e.clientX, y: e.clientY })}
                   onMouseMove={e => setTip(t => t ? { ...t, x: e.clientX, y: e.clientY } : null)}
-                  onMouseLeave={() => setTip(null)}
+                  onMouseLeave={e => {
+                    const related = e.relatedTarget
+                    if (related && e.currentTarget.contains(related)) return
+                    setTip(null)
+                  }}
                 >
                   <span className="legend-dot" style={{ background: '#ccc', display: 'inline-block' }} />
                   {j.name}
@@ -98,6 +118,6 @@ export default function Legend({ jobs, today, onEdit, customers = [] }) {
         </div>
       )}
       {tip && <Tooltip job={tip.job} x={tip.x} y={tip.y} />}
-    </>
+    </div>
   )
 }
