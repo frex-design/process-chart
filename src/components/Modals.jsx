@@ -4,9 +4,8 @@ import { PHASES, ds } from '../lib/utils'
 import DatePicker from './DatePicker'
 
 export default function Modals({ jobs, staff, cars, customers, memos = {}, onRefresh }) {
-  const [modal, setModal] = useState(null) // {type, data}
+  const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
-  const [memos, setMemos] = useState({})
   const [selectedPhase, setSelectedPhase] = useState('')
 
   // グローバル関数として公開
@@ -41,9 +40,6 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
       delete window._openJobEdit; delete window._openPersonEdit; delete window._openCarEdit; delete window._openMemo
     }
   }, [jobs, staff, cars])
-
-  // メモをwindowに同期
-  useEffect(() => { window._memos = memos }, [memos])
 
   function close() { setModal(null) }
   function f(key, val) { setForm(prev => ({ ...prev, [key]: val })) }
