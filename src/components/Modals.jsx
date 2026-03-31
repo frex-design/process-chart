@@ -3,7 +3,12 @@ import { supabase } from '../lib/supabase'
 import { PHASES, ds } from '../lib/utils'
 import DatePicker from './DatePicker'
 
-export default function Modals({ jobs, staff, cars, customers, memos = {}, onRefresh }) {
+export default function Modals({
+  jobs, staff, cars, customers, memos = {},
+  onRefresh,
+  onRefreshBars, onRefreshCarBars, onRefreshJobs,
+  onRefreshStaff, onRefreshCars, onRefreshCustomers, onRefreshMemos
+}) {
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
   const [selectedPhase, setSelectedPhase] = useState('')
@@ -59,7 +64,7 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
       phase, staff_id: modal.data.staffId,
       start_date: form.start, end_date: form.end
     })
-    onRefresh(); close()
+    close(); onRefreshBars()
   }
 
   async function saveDriverBar() {
@@ -70,7 +75,7 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
       phase: '', staff_id: modal.data.staffId,
       start_date: form.start, end_date: form.end
     })
-    onRefresh(); close()
+    close(); onRefreshBars()
   }
 
   async function saveCarBar() {
@@ -80,7 +85,7 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
       year, job_id: parseInt(form.jobId || jobs[0]?.id),
       car_id: modal.data.carId, start_date: form.start, end_date: form.end
     })
-    onRefresh(); close()
+    close(); onRefreshCarBars()
   }
 
   async function saveBarDetail() {
@@ -88,19 +93,17 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
     const phase = form.customPhase?.trim() || form.phase || ''
     await supabase.from('bars').update({
-      job_id: parseInt(form.jobId),
-      phase,
-      start_date: form.start,
-      end_date: form.end,
+      job_id: parseInt(form.jobId), phase,
+      start_date: form.start, end_date: form.end,
       customer_id: form.customerId ? parseInt(form.customerId) : null
     }).eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshBars()
   }
 
   async function deleteBar() {
     if (!confirm('削除しますか？')) return
     await supabase.from('bars').delete().eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshBars()
   }
 
   async function saveCarBarDetail() {
@@ -108,16 +111,15 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
     await supabase.from('car_bars').update({
       job_id: parseInt(form.jobId),
-      start_date: form.start,
-      end_date: form.end
+      start_date: form.start, end_date: form.end
     }).eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshCarBars()
   }
 
   async function deleteCarBar() {
     if (!confirm('削除しますか？')) return
     await supabase.from('car_bars').delete().eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshCarBars()
   }
 
   async function saveJob() {
@@ -134,7 +136,7 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     } else {
       await supabase.from('jobs').insert(payload)
     }
-    onRefresh(); close()
+    close(); onRefreshJobs()
   }
 
   async function deleteJob() {
@@ -142,7 +144,7 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     await supabase.from('bars').delete().eq('job_id', modal.data.id)
     await supabase.from('car_bars').delete().eq('job_id', modal.data.id)
     await supabase.from('jobs').delete().eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshJobs(); onRefreshBars(); onRefreshCarBars()
   }
 
   async function saveStaff() {
@@ -153,14 +155,14 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
       const cat = modal.data?.cat || 'staff'
       await supabase.from('staff').insert({ name: form.name, category: cat })
     }
-    onRefresh(); close()
+    close(); onRefreshStaff()
   }
 
   async function deleteStaff() {
     if (!confirm('削除しますか？関連バーも削除されます。')) return
     await supabase.from('bars').delete().eq('staff_id', modal.data.id)
     await supabase.from('staff').delete().eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshStaff(); onRefreshBars()
   }
 
   async function saveCustomer() {
@@ -170,15 +172,14 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     } else {
       await supabase.from('customers').insert({ name: form.customerName })
     }
-    f('customerName', '')
-    f('editCustomerId', null)
-    onRefresh()
+    f('customerName', ''); f('editCustomerId', null)
+    onRefreshCustomers()
   }
 
   async function deleteCustomer(id) {
     if (!confirm('この顧客を削除しますか？')) return
     await supabase.from('customers').delete().eq('id', id)
-    onRefresh()
+    onRefreshCustomers()
   }
 
   async function saveCar() {
@@ -188,14 +189,14 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     } else {
       await supabase.from('cars').insert({ name: form.name })
     }
-    onRefresh(); close()
+    close(); onRefreshCars()
   }
 
   async function deleteCar() {
     if (!confirm('削除しますか？関連バーも削除されます。')) return
     await supabase.from('car_bars').delete().eq('car_id', modal.data.id)
     await supabase.from('cars').delete().eq('id', modal.data.id)
-    onRefresh(); close()
+    close(); onRefreshCars(); onRefreshCarBars()
   }
 
   async function saveMemo() {
@@ -206,7 +207,7 @@ export default function Modals({ jobs, staff, cars, customers, memos = {}, onRef
     } else {
       await supabase.from('memos').delete().match({ year: yr, month_key: key })
     }
-    onRefresh(); close()
+    close(); onRefreshMemos()
   }
 
   const BOTTOM_JOBS = ['その他', '有給休暇']
