@@ -249,7 +249,7 @@ export default function App() {
           />
         </div>
       </div>
-      <Modals jobs={jobs} staff={staff} cars={cars} customers={customers} onRefresh={fetchAll} />
+      <Modals jobs={jobs} staff={staff} cars={cars} customers={customers} memos={memos} onRefresh={fetchAll} />
       {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
     </div>
   )

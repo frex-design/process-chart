@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase'
 import { PHASES, ds } from '../lib/utils'
 import DatePicker from './DatePicker'
 
-export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
+export default function Modals({ jobs, staff, cars, customers, memos = {}, onRefresh }) {
   const [modal, setModal] = useState(null) // {type, data}
   const [form, setForm] = useState({})
   const [memos, setMemos] = useState({})
@@ -31,13 +31,13 @@ export default function Modals({ jobs, staff, cars, customers, onRefresh }) {
     window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '', customerId: job.customer_id || '' }); setModal({ type: 'jobEdit', data: job }) }
     window._openPersonEdit = (person, cat) => { setForm({ name: person.name }); setModal({ type: 'personEdit', data: { ...person, cat } }) }
     window._openCarEdit = (car) => { setForm({ name: car.name }); setModal({ type: 'carEdit', data: car }) }
-    window._openMemo = (key, lbl) => { setForm({ content: window._memos?.[key] || '' }); setModal({ type: 'memo', data: { key, lbl } }) }
+    window._openMemo = (key, lbl) => { setForm({ content: memos[key] || '' }); setModal({ type: 'memo', data: { key, lbl } }) }
     return () => {
       delete window._openModal; delete window._openNewBar; delete window._openDriverBar
       delete window._openCarBar; delete window._openBarDetail; delete window._openCarBarDetail
       delete window._openJobEdit; delete window._openPersonEdit; delete window._openCarEdit; delete window._openMemo
     }
-  }, [jobs, staff, cars])
+  }, [jobs, staff, cars, memos])
 
   // メモをwindowに同期
   useEffect(() => { window._memos = memos }, [memos])
