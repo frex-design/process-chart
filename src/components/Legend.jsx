@@ -24,27 +24,23 @@ function Tooltip({ job, x, y }) {
 
 const BOTTOM_JOBS = ['その他', '有給休暇']
 
-export default function Legend({ jobs, today, onEdit, customers = [] }) {
+export default function Legend({ jobs, today, onEdit, customers = [], mobileOnly = false }) {
   const [tip, setTip] = useState(null)
   const legendRef = useRef(null)
 
   useEffect(() => {
     const handleMove = (e) => {
       if (!tip) return
-      if (legendRef.current && !legendRef.current.contains(e.target)) {
-        setTip(null)
-      }
+      if (legendRef.current && !legendRef.current.contains(e.target)) setTip(null)
     }
     document.addEventListener('mousemove', handleMove)
     return () => document.removeEventListener('mousemove', handleMove)
   }, [tip])
 
   const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
-  const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
-
-  // 通常業務と固定業務に分離
   const normalJobs = activeJobs.filter(j => !BOTTOM_JOBS.includes(j.name))
   const fixedJobs = activeJobs.filter(j => BOTTOM_JOBS.includes(j.name))
+  const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
 
   const byYear = {}
   endedJobs.forEach(j => {
@@ -55,8 +51,40 @@ export default function Legend({ jobs, today, onEdit, customers = [] }) {
   })
 
   const jobLabel = (j) => {
+    if (mobileOnly) return j.name
     const customer = customers.find(c => c.id === j.customer_id)
     return customer ? `${j.name} -［${customer.name}］` : j.name
+  }
+
+  // スマホ用：業務名のみシンプル表示
+  if (mobileOnly) {
+    return (
+      <div style={{
+        display: 'flex', flexWrap: 'wrap', gap: 4, padding: '6px 8px',
+        background: '#fff', borderBottom: '0.5px solid #eee'
+      }}>
+        {normalJobs.map(j => (
+          <div key={j.id} style={{
+            display: 'flex', alignItems: 'center', gap: 3,
+            fontSize: 11, color: '#555', padding: '2px 6px',
+            background: '#f5f5f3', borderRadius: 4
+          }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: jobColor(j.id, jobs), flexShrink: 0 }} />
+            {j.name}
+          </div>
+        ))}
+        {fixedJobs.map(j => (
+          <div key={j.id} style={{
+            display: 'flex', alignItems: 'center', gap: 3,
+            fontSize: 11, color: '#555', padding: '2px 6px',
+            background: '#f5f5f3', borderRadius: 4
+          }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: jobColor(j.id, jobs), flexShrink: 0 }} />
+            {j.name}
+          </div>
+        ))}
+      </div>
+    )
   }
 
   const LegendItem = ({ j, style = {} }) => (

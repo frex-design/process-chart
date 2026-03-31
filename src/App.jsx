@@ -231,6 +231,7 @@ export default function App() {
         </div>
       )}
       {!IS_MOBILE && <Legend jobs={jobs} today={TODAY} onEdit={(j) => window._openJobEdit(j)} customers={customers} />}
+      {IS_MOBILE && <Legend jobs={jobs} today={TODAY} onEdit={() => {}} customers={customers} mobileOnly />}
       {!IS_MOBILE && <div className="hint">セルをクリック → 工程登録　／　バー端をドラッグ → 期間変更　／　バー中央をドラッグ → 移動</div>}
 
       <div className="gantt-outer">
