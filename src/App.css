@@ -116,4 +116,13 @@ table{border-collapse:collapse;table-layout:fixed;}
   .divider-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .memo-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .staff-name-btn{font-size:10px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* スマホ：縦横の線を濃くして見やすく */
+  .day-cell{border-right:1px solid #b0b0aa !important;border-bottom:1px solid #b0b0aa !important;}
+  .day-cell-sm{border-right:1px solid #b0b0aa !important;border-bottom:1px solid #b0b0aa !important;}
+  .month-boundary{border-right:2px solid #666 !important;}
+  .staff-th{border-bottom:1px solid #999 !important;}
+  .staff-th-sm{border-bottom:1px solid #999 !important;}
+  .section-fill{border-right:1px solid #c8d4e0 !important;border-bottom:1px solid #b0b0aa !important;}
+  .section-fill-partner{border-right:1px solid #d4c8e8 !important;border-bottom:1px solid #b0b0aa !important;}
+  .section-fill-car{border-right:1px solid #b8dcc4 !important;border-bottom:1px solid #b0b0aa !important;}
 }
