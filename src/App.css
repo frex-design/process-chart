@@ -108,14 +108,20 @@ table{border-collapse:collapse;table-layout:fixed;}
   .gantt-main{max-height:calc(100vh - 120px);-webkit-overflow-scrolling:touch;}
   .gantt-header{-webkit-overflow-scrolling:touch;}
   .name-th{width:100px !important;min-width:100px !important;max-width:100px !important;}
-  .staff-th{width:100px !important;min-width:100px !important;max-width:100px !important;}
-  .staff-th-sm{width:100px !important;min-width:100px !important;max-width:100px !important;}
+  .staff-th{width:100px !important;min-width:100px !important;max-width:100px !important;height:34px !important;}
+  .staff-th-sm{width:100px !important;min-width:100px !important;max-width:100px !important;height:28px !important;}
   .section-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .section-label-partner{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .section-label-car{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .divider-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .memo-label{width:100px !important;min-width:100px !important;max-width:100px !important;}
   .staff-name-btn{font-size:10px !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  /* スマホ：行の高さを縮小 */
+  .day-cell{height:34px !important;}
+  .day-cell-sm{height:28px !important;}
+  /* スマホ：バーの高さを縮小 */
+  .bar{top:4px !important;height:26px !important;font-size:10px !important;}
+  .bar-sm{top:4px !important;height:20px !important;font-size:9px !important;}
   /* スマホ：縦横の線を濃くして見やすく */
   .day-cell{border-right:1px solid #b0b0aa !important;border-bottom:1px solid #b0b0aa !important;}
   .day-cell-sm{border-right:1px solid #b0b0aa !important;border-bottom:1px solid #b0b0aa !important;}
