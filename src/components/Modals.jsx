@@ -34,7 +34,17 @@ export default function Modals({
       })
       setModal({ type: 'barDetail', data: bar })
     }
-    window._openCarBarDetail = (bar) => { setForm({ jobId: bar.job_id, start: bar.start_date, end: bar.end_date }); setModal({ type: 'carBarDetail', data: bar }) }
+    window._openCarBarDetail = (bar) => {
+      const isPreset = PHASES.includes(bar.phase)
+      setForm({
+        jobId: bar.job_id,
+        phase: isPreset ? bar.phase : '',
+        customPhase: isPreset ? '' : (bar.phase || ''),
+        start: bar.start_date,
+        end: bar.end_date
+      })
+      setModal({ type: 'carBarDetail', data: bar })
+    }
     window._openJobEdit = (job) => { setForm({ name: job.name, contractStart: job.contract_start || '', contractEnd: job.contract_end || '', submitDate: job.submit_date || '', customerId: job.customer_id || '' }); setModal({ type: 'jobEdit', data: job }) }
     window._openPersonEdit = (person, cat) => { setForm({ name: person.name }); setModal({ type: 'personEdit', data: { ...person, cat } }) }
     window._openCarEdit = (car) => { setForm({ name: car.name }); setModal({ type: 'carEdit', data: car }) }
@@ -81,9 +91,10 @@ export default function Modals({
   async function saveCarBar() {
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     const year = new Date(form.start).getMonth() < 3 ? new Date(form.start).getFullYear() - 1 : new Date(form.start).getFullYear()
+    const phase = form.customPhase?.trim() || form.phase || ''
     await supabase.from('car_bars').insert({
       year, job_id: parseInt(form.jobId || jobs[0]?.id),
-      car_id: modal.data.carId, start_date: form.start, end_date: form.end
+      car_id: modal.data.carId, start_date: form.start, end_date: form.end, phase
     })
     close(); onRefreshCarBars()
   }
@@ -109,9 +120,10 @@ export default function Modals({
   async function saveCarBarDetail() {
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
+    const phase = form.customPhase?.trim() || form.phase || ''
     await supabase.from('car_bars').update({
       job_id: parseInt(form.jobId),
-      start_date: form.start, end_date: form.end
+      start_date: form.start, end_date: form.end, phase
     }).eq('id', modal.data.id)
     close(); onRefreshCarBars()
   }
@@ -287,6 +299,24 @@ export default function Modals({
           <div className="modal-title">配車を登録</div>
           <div style={{ fontSize: 12, color: '#666', marginBottom: 10 }}>車両：{cars.find(c => c.id === data.carId)?.name}</div>
           {jobSelect()}
+          <div className="form-row">
+            <label className="form-label">工程（任意）</label>
+            <div className="phase-grid">
+              {PHASES.map(ph => (
+                <div
+                  key={ph}
+                  className={'phase-opt' + (form.phase === ph && !form.customPhase ? ' selected' : '')}
+                  onClick={() => { f('phase', ph); f('customPhase', '') }}
+                >{ph}</div>
+              ))}
+            </div>
+            <input
+              style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+              placeholder="自由記入（入力するとこちらが優先されます）"
+              value={form.customPhase || ''}
+              onChange={e => { f('customPhase', e.target.value); if (e.target.value) f('phase', '') }}
+            />
+          </div>
           {dateRange('start', 'end')}
           <div className="modal-actions">
             <button className="btn" onClick={close}>キャンセル</button>
@@ -344,6 +374,24 @@ export default function Modals({
         {type === 'carBarDetail' && <>
           <div className="modal-title">配車の編集</div>
           {jobSelect()}
+          <div className="form-row">
+            <label className="form-label">工程（任意）</label>
+            <div className="phase-grid">
+              {PHASES.map(ph => (
+                <div
+                  key={ph}
+                  className={'phase-opt' + (form.phase === ph && !form.customPhase ? ' selected' : '')}
+                  onClick={() => { f('phase', ph); f('customPhase', '') }}
+                >{ph}</div>
+              ))}
+            </div>
+            <input
+              style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+              placeholder="自由記入（入力するとこちらが優先されます）"
+              value={form.customPhase || ''}
+              onChange={e => { f('customPhase', e.target.value); if (e.target.value) f('phase', '') }}
+            />
+          </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
             <div><label className="form-label">開始日</label><DatePicker value={form.start} onChange={v => f('start', v)} /></div>
             <div><label className="form-label">終了日</label><DatePicker value={form.end} onChange={v => f('end', v)} /></div>
