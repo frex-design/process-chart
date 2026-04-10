@@ -25,6 +25,7 @@ export default function App() {
   const [carBars, setCarBars] = useState([])
   const [memos, setMemos] = useState({})
   const [loading, setLoading] = useState(true)
+  const initialLoadDone = useRef(false)
   const [showGuide, setShowGuide] = useState(false)
   const headerRef = useRef(null)
   const mainRef = useRef(null)
@@ -60,7 +61,7 @@ export default function App() {
 
   async function fetchAll() {
     const scrollX = mainRef.current ? mainRef.current.scrollLeft : -1
-    setLoading(true)
+    if (!initialLoadDone.current) setLoading(true)
     const [j, s, c, cu, b, cb, m, y] = await Promise.all([
       supabase.from('jobs').select('*').order('id'),
       supabase.from('staff').select('*').order('sort_order'),
@@ -84,6 +85,7 @@ export default function App() {
     }
     if (y.data) setYears(y.data.map(r => r.year))
     setLoading(false)
+    initialLoadDone.current = true
     if (scrollX >= 0) {
       setTimeout(() => { if (mainRef.current) mainRef.current.scrollLeft = scrollX }, 100)
     }
