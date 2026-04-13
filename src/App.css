@@ -132,3 +132,5 @@ table{border-collapse:collapse;table-layout:fixed;}
   .section-fill-partner{border-right:1px solid #d4c8e8 !important;border-bottom:1px solid #b0b0aa !important;}
   .section-fill-car{border-right:1px solid #b8dcc4 !important;border-bottom:1px solid #b0b0aa !important;}
 }
+@keyframes bar-pulse{0%,100%{box-shadow:0 0 3px 1px rgba(255,255,255,0.3);}50%{box-shadow:0 0 10px 4px rgba(255,255,255,0.75),0 0 16px 6px rgba(255,255,255,0.3);}}
+.bar-pulse{animation:bar-pulse 2s ease-in-out infinite;}

@@ -136,6 +136,8 @@ export default function GanttBody({
     document.addEventListener('mouseup', onUp)
   }
 
+  const PULSE_PHASES = ["現地踏査", "定期点検"]
+
   function renderBar(b, di, isSmall, showPhase) {
     const si = Math.max(0, dayIdx(b.start_date))
     if (si !== di) return null
@@ -145,6 +147,7 @@ export default function GanttBody({
     const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
     const sn = jn.length > 5 ? jn.slice(0, 5) + '…' : jn
     const label = showPhase ? `${b.phase} / ${sn}` : sn
+    const isPulse = PULSE_PHASES.includes(b.phase)
     const barCls = isSmall ? 'bar-sm' : 'bar'
     const fontSize = isSmall ? 10 : 12
     const top = isSmall ? 5 : 6
@@ -152,7 +155,7 @@ export default function GanttBody({
     return (
       <div
         key={b.id}
-        className={barCls}
+        className={barCls + (isPulse ? ' bar-pulse' : '')}
         style={{ left: 1, top, height, width: w, background: color, color: '#fff', fontSize }}
         onMouseDown={e => onBarMouseDown(e, b, 'bar')}
         onMouseEnter={e => {
