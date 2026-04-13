@@ -106,6 +106,25 @@ export default function GuideModal({ onClose }) {
           </ul>
         </Section>
 
+        <Section title="📅 Googleカレンダーと連携する">
+          <Steps steps={[
+            'Googleカレンダー（calendar.google.com）を開く',
+            '左メニューの「他のカレンダー」横の ＋ をクリック',
+            '「URLで追加」を選択',
+            '以下のURLを入力してカレンダーを追加',
+          ]} />
+          <div style={{
+            background: '#f0f4ff', border: '0.5px solid #c0d0f0',
+            borderRadius: 8, padding: '8px 12px', marginTop: 8,
+            fontSize: 11, wordBreak: 'break-all', color: '#185FA5', fontFamily: 'monospace'
+          }}>
+            https://rrsbyiypwgnwzqadwpky.supabase.co/functions/v1/frex-ical
+          </div>
+          <p style={{ marginTop: 8, fontSize: 12, color: '#888' }}>
+            ※ Googleカレンダーの同期は数時間に1回自動更新されます
+          </p>
+        </Section>
+
         <Section title="⚠️ 注意事項">
           <ul style={{ paddingLeft: 18, fontSize: 13, lineHeight: 1.8, color: '#555' }}>
             <li>データは自動で保存されます</li>
