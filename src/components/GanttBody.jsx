@@ -136,7 +136,7 @@ export default function GanttBody({
     document.addEventListener('mouseup', onUp)
   }
 
-  const PULSE_PHASES = ["現地踏査", "定期点検"]
+  const PULSE_PHASES = ['現地踏査', '定期点検']
 
   function renderBar(b, di, isSmall, showPhase) {
     const si = Math.max(0, dayIdx(b.start_date))
@@ -147,16 +147,23 @@ export default function GanttBody({
     const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
     const sn = jn.length > 5 ? jn.slice(0, 5) + '…' : jn
     const label = showPhase ? `${b.phase} / ${sn}` : sn
-    const isPulse = PULSE_PHASES.includes(b.phase)
     const barCls = isSmall ? 'bar-sm' : 'bar'
     const fontSize = isSmall ? 10 : 12
     const top = isSmall ? 5 : 6
     const height = isSmall ? 24 : 30
+    const isPulse = PULSE_PHASES.includes(b.phase)
+    const barStyle = isPulse
+      ? { left: 1, top, height, width: w, background: color, color: '#fff', fontSize }
+      : {
+          left: 1, top, height, width: w, color: '#fff', fontSize,
+          borderRadius: 2,
+          background: `linear-gradient(135deg, ${color}ee, ${color}99)`,
+        }
     return (
       <div
         key={b.id}
         className={barCls + (isPulse ? ' bar-pulse' : '')}
-        style={{ left: 1, top, height, width: w, background: color, color: '#fff', fontSize }}
+        style={barStyle}
         onMouseDown={e => onBarMouseDown(e, b, 'bar')}
         onMouseEnter={e => {
           const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
@@ -185,7 +192,7 @@ export default function GanttBody({
       <div
         key={b.id}
         className="bar-sm"
-        style={{ left: 1, top: 5, height: 24, width: w, background: color, color: '#fff', fontSize: 10 }}
+        style={{ left: 1, top: 5, height: 24, width: w, color: '#fff', fontSize: 10, borderRadius: 2, background: `linear-gradient(135deg, ${color}ee, ${color}99)` }}
         onMouseDown={e => onBarMouseDown(e, b, 'carbar')}
         onMouseEnter={e => {
           const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
