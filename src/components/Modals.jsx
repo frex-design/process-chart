@@ -35,11 +35,9 @@ export default function Modals({
       setModal({ type: 'barDetail', data: bar })
     }
     window._openCarBarDetail = (bar) => {
-      const isPreset = PHASES.includes(bar.phase)
       setForm({
         jobId: bar.job_id,
-        phase: isPreset ? bar.phase : '',
-        customPhase: isPreset ? '' : (bar.phase || ''),
+        customPhase: bar.phase || '',
         start: bar.start_date,
         end: bar.end_date
       })
@@ -301,20 +299,11 @@ export default function Modals({
           {jobSelect()}
           <div className="form-row">
             <label className="form-label">工程（任意）</label>
-            <div className="phase-grid">
-              {PHASES.map(ph => (
-                <div
-                  key={ph}
-                  className={'phase-opt' + (form.phase === ph && !form.customPhase ? ' selected' : '')}
-                  onClick={() => { f('phase', ph); f('customPhase', '') }}
-                >{ph}</div>
-              ))}
-            </div>
             <input
-              style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
-              placeholder="自由記入（入力するとこちらが優先されます）"
+              style={{ width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+              placeholder="自由記入"
               value={form.customPhase || ''}
-              onChange={e => { f('customPhase', e.target.value); if (e.target.value) f('phase', '') }}
+              onChange={e => f('customPhase', e.target.value)}
             />
           </div>
           {dateRange('start', 'end')}
@@ -376,20 +365,11 @@ export default function Modals({
           {jobSelect()}
           <div className="form-row">
             <label className="form-label">工程（任意）</label>
-            <div className="phase-grid">
-              {PHASES.map(ph => (
-                <div
-                  key={ph}
-                  className={'phase-opt' + (form.phase === ph && !form.customPhase ? ' selected' : '')}
-                  onClick={() => { f('phase', ph); f('customPhase', '') }}
-                >{ph}</div>
-              ))}
-            </div>
             <input
-              style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
-              placeholder="自由記入（入力するとこちらが優先されます）"
+              style={{ width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
+              placeholder="自由記入"
               value={form.customPhase || ''}
-              onChange={e => { f('customPhase', e.target.value); if (e.target.value) f('phase', '') }}
+              onChange={e => f('customPhase', e.target.value)}
             />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
