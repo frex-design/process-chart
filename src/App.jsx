@@ -176,8 +176,22 @@ export default function App() {
   const todayLabel = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${week[now.getDay()]}）`
 
   if (loading) return (
-    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', fontSize:'14px', color:'#666' }}>
-      読み込み中...
+    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100vh', gap: 16 }}>
+      <div style={{ display:'flex', gap: 6 }}>
+        {[0,1,2].map(i => (
+          <div key={i} style={{
+            width: 10, height: 10, borderRadius: '50%', background: '#185FA5',
+            animation: `loading-dot 1.2s ease-in-out ${i * 0.2}s infinite`
+          }} />
+        ))}
+      </div>
+      <div style={{ fontSize: 13, color: '#888', letterSpacing: '0.05em' }}>Loading...</div>
+      <style>{`
+        @keyframes loading-dot {
+          0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+          40% { transform: scale(1.2); opacity: 1; }
+        }
+      `}</style>
     </div>
   )
 
