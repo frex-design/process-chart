@@ -154,11 +154,7 @@ export default function GanttBody({
     const isPulse = PULSE_PHASES.includes(b.phase)
     const barStyle = isPulse
       ? { left: 1, top, height, width: w, background: color, color: '#fff', fontSize }
-      : {
-          left: 1, top, height, width: w, color: '#fff', fontSize,
-          borderRadius: 2,
-          background: `linear-gradient(135deg, ${color}ee, ${color}99)`,
-        }
+      : { left: 1, top, height, width: w, background: color, color: '#fff', fontSize, borderRadius: 2 }
     return (
       <div
         key={b.id}
@@ -192,7 +188,7 @@ export default function GanttBody({
       <div
         key={b.id}
         className="bar-sm"
-        style={{ left: 1, top: 5, height: 24, width: w, color: '#fff', fontSize: 10, borderRadius: 2, background: `linear-gradient(135deg, ${color}ee, ${color}99)` }}
+        style={{ left: 1, top: 5, height: 24, width: w, background: color, color: '#fff', fontSize: 10, borderRadius: 2 }}
         onMouseDown={e => onBarMouseDown(e, b, 'carbar')}
         onMouseEnter={e => {
           const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
