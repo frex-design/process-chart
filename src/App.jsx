@@ -198,7 +198,7 @@ export default function App() {
   return (
     <div className="wrap">
       <div className="header">
-        <div className="title-text">FRe:x Design inc. | 工程管理表</div>
+        <div className="title-text">工程管理表システム | FRe:x Design inc.</div>
         <div className="controls">
           {!IS_MOBILE && (
             <a href="https://frex-design.github.io/Accommodation-management/" target="_blank" rel="noopener" className="btn">出張宿泊管理システム</a>
