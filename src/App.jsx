@@ -54,8 +54,14 @@ export default function App() {
     setTimeout(() => {
       if (!mainRef.current) return
       const currentDays = buildDays(year)
-      const monthStart = currentDays.findIndex(d => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
-      if (monthStart >= 0) mainRef.current.scrollLeft = monthStart * COL
+      if (IS_MOBILE) {
+        // スマホ: 2日前から表示（当日が左端より少し右に来るように）
+        const todayIndex = currentDays.findIndex(d => ds(d) === TODAY)
+        if (todayIndex >= 0) mainRef.current.scrollLeft = Math.max(0, (todayIndex - 2) * COL)
+      } else {
+        const monthStart = currentDays.findIndex(d => d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear())
+        if (monthStart >= 0) mainRef.current.scrollLeft = monthStart * COL
+      }
     }, 300)
   }
 
