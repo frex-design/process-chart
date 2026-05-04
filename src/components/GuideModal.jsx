@@ -98,6 +98,33 @@ export default function GuideModal({ onClose }) {
           <p>自分の行のセルをクリック → 業務で「<strong>有給休暇</strong>」または「<strong>その他</strong>」を選ぶ</p>
         </Section>
 
+        <Section title="📋 工程を他の人にコピーする">
+          <Steps steps={[
+            '既存の工程バーをクリックして編集モーダルを開く',
+            '画面下の「📋 他の人にコピー」ボタンをクリック',
+            'コピーしたい社員をチェックボックスで選ぶ（複数選択可）',
+            '「コピー実行（N名）」ボタンを押す',
+          ]} />
+          <p style={{ marginTop: 6, color: '#666' }}>
+            同じ業務・工程・期間のバーが選択した全員に一括で登録されます。
+          </p>
+        </Section>
+
+        <Section title="🔄 スケジュール管理ツールとの連携">
+          <p style={{ marginBottom: 8 }}>
+            スケジュール管理ツールで「<strong>休み</strong>」として登録すると、工程管理表に「<strong>有給休暇</strong>」バーが自動で追加されます。
+          </p>
+          <Table rows={[
+            ['登録', 'スケジュールに「休み」を追加 → 工程表に有給休暇バーが自動追加'],
+            ['変更', '日付を変更すると工程表のバーも自動更新'],
+            ['削除', 'スケジュールから削除すると工程表のバーも自動削除'],
+            ['対象外', '藤嶋・大里は同期対象外'],
+          ]} />
+          <p style={{ marginTop: 8, fontSize: 12, color: '#888' }}>
+            ※ 手動で工程表に登録した有給休暇バーは対象外です
+          </p>
+        </Section>
+
         <Section title="📝 メモの使い方">
           <ul style={{ paddingLeft: 18, fontSize: 13, lineHeight: 1.8 }}>
             <li>月のヘッダー（4月・5月…）をクリックするとメモを入力できます</li>
