@@ -12,6 +12,8 @@ export default function Modals({
   const [modal, setModal] = useState(null)
   const [form, setForm] = useState({})
   const [selectedPhase, setSelectedPhase] = useState('')
+  const [copyMode, setCopyMode] = useState(false)
+  const [copyTargets, setCopyTargets] = useState([])
 
   // グローバル関数として公開
   const memosRef = useRef(memos)
@@ -59,7 +61,7 @@ export default function Modals({
     }
   }, [jobs, staff, cars])
 
-  function close() { setModal(null) }
+  function close() { setModal(null); setCopyMode(false); setCopyTargets([]) }
   function f(key, val) { setForm(prev => ({ ...prev, [key]: val })) }
 
   // ============ 保存処理 ============
@@ -112,6 +114,22 @@ export default function Modals({
   async function deleteBar() {
     if (!confirm('削除しますか？')) return
     await supabase.from('bars').delete().eq('id', modal.data.id)
+    close(); onRefreshBars()
+  }
+
+  async function copyBarToStaff() {
+    if (copyTargets.length === 0) { alert('コピー先を選択してください'); return }
+    const phase = form.customPhase?.trim() || form.phase || ''
+    const inserts = copyTargets.map(staffId => ({
+      year: modal.data.year,
+      job_id: parseInt(form.jobId),
+      phase,
+      staff_id: staffId,
+      start_date: form.start,
+      end_date: form.end,
+      customer_id: form.customerId ? parseInt(form.customerId) : null
+    }))
+    await supabase.from('bars').insert(inserts)
     close(); onRefreshBars()
   }
 
@@ -357,6 +375,48 @@ export default function Modals({
             <button className="btn" onClick={close}>キャンセル</button>
             <button className="btn btn-primary" onClick={saveBarDetail}>保存</button>
           </div>
+          {!copyMode && (
+            <button
+              onClick={() => { setCopyMode(true); setCopyTargets([]) }}
+              style={{
+                marginTop: 8, width: '100%', fontSize: 12, padding: '6px 0',
+                border: '0.5px solid #185FA5', borderRadius: 8,
+                background: '#fff', color: '#185FA5', cursor: 'pointer'
+              }}
+            >📋 他の人にコピー</button>
+          )}
+          {copyMode && (
+            <div style={{ marginTop: 10, border: '0.5px solid #d0d8e8', borderRadius: 8, padding: 10, background: '#f8faff' }}>
+              <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: '#185FA5' }}>コピー先を選択</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 2, maxHeight: 180, overflowY: 'auto' }}>
+                {staff.filter(s => s.id !== data.staff_id).map(s => (
+                  <label key={s.id} style={{
+                    display: 'flex', alignItems: 'center', gap: 8, fontSize: 12,
+                    cursor: 'pointer', padding: '5px 8px', borderRadius: 6,
+                    background: copyTargets.includes(s.id) ? '#dbeafe' : 'transparent'
+                  }}>
+                    <input
+                      type="checkbox"
+                      checked={copyTargets.includes(s.id)}
+                      onChange={e => setCopyTargets(prev =>
+                        e.target.checked ? [...prev, s.id] : prev.filter(id => id !== s.id)
+                      )}
+                    />
+                    <span>{s.name}</span>
+                    <span style={{ fontSize: 10, color: '#888' }}>
+                      ({s.category === 'staff' ? '社員' : s.category === 'bossy' ? '補助' : '運転'})
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                <button className="btn" onClick={() => { setCopyMode(false); setCopyTargets([]) }} style={{ flex: 1 }}>キャンセル</button>
+                <button className="btn btn-primary" onClick={copyBarToStaff} style={{ flex: 1 }}>
+                  コピー実行{copyTargets.length > 0 ? `（${copyTargets.length}名）` : ''}
+                </button>
+              </div>
+            </div>
+          )}
         </>}
 
         {/* 配車バー詳細・編集 */}
