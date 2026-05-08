@@ -7,3 +7,13 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>,
 )
+
+// Service Worker 登録（キャッシュによる高速化）
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/process-chart/service-worker.js')
+      .then(reg => console.log('[SW] registered:', reg.scope))
+      .catch(err => console.warn('[SW] registration failed:', err))
+  })
+}
