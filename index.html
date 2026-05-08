@@ -4,10 +4,51 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>工程管理表システム | FRe:x Design inc.</title>
-    <script type="module" crossorigin src="/process-chart/assets/index-DnYQ2Gt6.js"></script>
+    <!-- Supabase への早期接続（DNSルックアップを先行） -->
+    <link rel="preconnect" href="https://rrsbyiypwgnwzqadwpky.supabase.co">
+    <!-- 白画面防止: JSが来る前からローディングを表示 -->
+    <style>
+      #initial-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        gap: 16px;
+        background: #f5f5f3;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+      .ld-dots { display: flex; gap: 6px; }
+      .ld-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: #185FA5;
+        animation: ld-anim 1.2s ease-in-out infinite;
+      }
+      .ld-dot:nth-child(2) { animation-delay: 0.2s; }
+      .ld-dot:nth-child(3) { animation-delay: 0.4s; }
+      @keyframes ld-anim {
+        0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+        40%            { transform: scale(1.2); opacity: 1;   }
+      }
+      .ld-label { font-size: 13px; color: #888; letter-spacing: 0.05em; }
+    </style>
+    <script type="module" crossorigin src="/process-chart/assets/index-dp5eSM71.js"></script>
+    <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-qrcode-BqFx6gKf.js">
+    <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-react-BZZTlSp2.js">
+    <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-supabase-DywSbxor.js">
     <link rel="stylesheet" crossorigin href="/process-chart/assets/index-D6RBUPS4.css">
   </head>
   <body>
-    <div id="root"></div>
+    <!-- Reactが起動するまでここが表示される（白画面防止） -->
+    <div id="root">
+      <div id="initial-loading">
+        <div class="ld-dots">
+          <div class="ld-dot"></div>
+          <div class="ld-dot"></div>
+          <div class="ld-dot"></div>
+        </div>
+        <div class="ld-label">Loading...</div>
+      </div>
+    </div>
   </body>
 </html>
