@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>工程管理表システム | FRe:x Design inc.</title>
-    <!-- Supabase への早期接続（DNSルックアップを先行） -->
-    <link rel="preconnect" href="https://rrsbyiypwgnwzqadwpky.supabase.co">
+    <!-- Supabase への早期接続（CORS リクエストなので crossorigin 必須） -->
+    <link rel="preconnect" href="https://rrsbyiypwgnwzqadwpky.supabase.co" crossorigin>
+    <!-- dns-prefetch: preconnect 非対応の旧ブラウザ向けフォールバック -->
+    <link rel="dns-prefetch" href="https://rrsbyiypwgnwzqadwpky.supabase.co">
     <!-- 白画面防止: JSが来る前からローディングを表示 -->
     <style>
       #initial-loading {
@@ -32,9 +34,8 @@
       }
       .ld-label { font-size: 13px; color: #888; letter-spacing: 0.05em; }
     </style>
-    <script type="module" crossorigin src="/process-chart/assets/index-dp5eSM71.js"></script>
-    <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-qrcode-BqFx6gKf.js">
-    <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-react-BZZTlSp2.js">
+    <script type="module" crossorigin src="/process-chart/assets/index-CLrLxphP.js"></script>
+    <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-react-wGySg1uH.js">
     <link rel="modulepreload" crossorigin href="/process-chart/assets/vendor-supabase-DywSbxor.js">
     <link rel="stylesheet" crossorigin href="/process-chart/assets/index-D6RBUPS4.css">
   </head>
