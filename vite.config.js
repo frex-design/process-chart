@@ -9,10 +9,10 @@ export default defineConfig({
       output: {
         // ベンダーライブラリを個別チャンクに分割
         // → アプリコード変更時にReact/Supabaseの再DLが不要になる
+        // ※ qrcode.react は GuideModal と同じチャンクに自動バンドルされる（lazy import）
         manualChunks: {
           'vendor-react':    ['react', 'react-dom'],
           'vendor-supabase': ['@supabase/supabase-js'],
-          'vendor-qrcode':   ['qrcode.react'],
         },
       },
     },

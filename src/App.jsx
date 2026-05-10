@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react'
 import { supabase } from './lib/supabase'
 import { ds, buildDays, jobColor, getHolidays, COL, PHASES, overlap } from './lib/utils'
 import GanttHeader from './components/GanttHeader'
@@ -6,7 +6,8 @@ import GanttBody from './components/GanttBody'
 import SummaryRow from './components/SummaryRow'
 import Legend from './components/Legend'
 import Modals from './components/Modals'
-import GuideModal from './components/GuideModal'
+// GuideModal は操作ガイドボタンを押すまで不要 → 遅延読み込みで初期JSを削減
+const GuideModal = lazy(() => import('./components/GuideModal'))
 import './App.css'
 
 const TODAY = ds(new Date())
@@ -26,6 +27,8 @@ export default function App() {
   const [memos, setMemos] = useState({})
   const [loading, setLoading] = useState(true)
   const initialLoadDone = useRef(false)
+  // yearRef: realtime コールバック（クロージャ）から最新の year を参照するための ref
+  const yearRef = useRef(NOW_YEAR)
   const [showGuide, setShowGuide] = useState(false)
   const headerRef = useRef(null)
   const mainRef = useRef(null)
@@ -45,6 +48,12 @@ export default function App() {
 
   useEffect(() => {
     setDays(buildDays(year))
+    yearRef.current = year
+    // 初回マウント時は fetchAll が担当するのでスキップ
+    if (initialLoadDone.current) {
+      fetchBars(year)
+      fetchCarBars(year)
+    }
   }, [year])
 
   function scrollToCurrentMonth() {
@@ -68,13 +77,14 @@ export default function App() {
   async function fetchAll() {
     const scrollX = mainRef.current ? mainRef.current.scrollLeft : -1
     if (!initialLoadDone.current) setLoading(true)
+    const currentYear = yearRef.current
     const [j, s, c, cu, b, cb, m, y] = await Promise.all([
       supabase.from('jobs').select('*').order('id'),
       supabase.from('staff').select('*').order('sort_order'),
       supabase.from('cars').select('*').order('sort_order'),
       supabase.from('customers').select('*').order('sort_order'),
-      supabase.from('bars').select('*'),
-      supabase.from('car_bars').select('*'),
+      supabase.from('bars').select('*').eq('year', currentYear),      // 表示中の年度のみ取得
+      supabase.from('car_bars').select('*').eq('year', currentYear),  // 表示中の年度のみ取得
       supabase.from('memos').select('*'),
       supabase.from('years').select('*').order('year'),
     ])
@@ -109,12 +119,15 @@ export default function App() {
       .subscribe()
   }
 
-  async function fetchBars() {
-    const { data } = await supabase.from('bars').select('*')
+  async function fetchBars(targetYear) {
+    // yearRef.current を使うことで realtime コールバック（古いクロージャ）からも最新年度を参照できる
+    const yr = targetYear ?? yearRef.current
+    const { data } = await supabase.from('bars').select('*').eq('year', yr)
     if (data) setBars(data)
   }
-  async function fetchCarBars() {
-    const { data } = await supabase.from('car_bars').select('*')
+  async function fetchCarBars(targetYear) {
+    const yr = targetYear ?? yearRef.current
+    const { data } = await supabase.from('car_bars').select('*').eq('year', yr)
     if (data) setCarBars(data)
   }
   async function fetchJobs() {
@@ -283,7 +296,11 @@ export default function App() {
         onRefreshCustomers={fetchCustomers}
         onRefreshMemos={fetchMemos}
       />
-      {showGuide && <GuideModal onClose={() => setShowGuide(false)} />}
+      {showGuide && (
+        <Suspense fallback={null}>
+          <GuideModal onClose={() => setShowGuide(false)} />
+        </Suspense>
+      )}
     </div>
   )
 }

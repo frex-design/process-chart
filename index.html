@@ -4,8 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>工程管理表システム | FRe:x Design inc.</title>
-    <!-- Supabase への早期接続（DNSルックアップを先行） -->
-    <link rel="preconnect" href="https://rrsbyiypwgnwzqadwpky.supabase.co">
+    <!-- Supabase への早期接続（CORS リクエストなので crossorigin 必須） -->
+    <link rel="preconnect" href="https://rrsbyiypwgnwzqadwpky.supabase.co" crossorigin>
+    <!-- dns-prefetch: preconnect 非対応の旧ブラウザ向けフォールバック -->
+    <link rel="dns-prefetch" href="https://rrsbyiypwgnwzqadwpky.supabase.co">
     <!-- 白画面防止: JSが来る前からローディングを表示 -->
     <style>
       #initial-loading {
