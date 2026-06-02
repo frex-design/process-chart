@@ -298,7 +298,7 @@ export default function App() {
       />
       {showGuide && (
         <Suspense fallback={null}>
-          <GuideModal onClose={() => setShowGuide(false)} />
+          <GuideModal onClose={() => setShowGuide(false)} staff={staff} />
         </Suspense>
       )}
     </div>

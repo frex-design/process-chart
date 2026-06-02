@@ -1,8 +1,32 @@
+import { useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 
 const APP_URL = 'https://frex-design.github.io/process-chart/'
+const ICAL_BASE = 'https://rrsbyiypwgnwzqadwpky.supabase.co/functions/v1/frex-ical'
 
-export default function GuideModal({ onClose }) {
+export default function GuideModal({ onClose, staff = [] }) {
+  // 同期対象に出すのは社員のみ（協力・運転は除外）
+  const staffOnly = staff.filter(s => s.category === 'staff')
+  const [selectedIds, setSelectedIds] = useState([])
+  const [copied, setCopied] = useState(false)
+
+  const icalUrl = selectedIds.length
+    ? `${ICAL_BASE}?staff_id=${selectedIds.join(',')}`
+    : ICAL_BASE
+
+  const toggleStaff = (id) => {
+    setCopied(false)
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
+    )
+  }
+
+  const copyUrl = () => {
+    navigator.clipboard?.writeText(icalUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
   return (
     <div
       style={{
@@ -135,18 +159,83 @@ export default function GuideModal({ onClose }) {
 
         <Section title="📅 Googleカレンダーと連携する">
           <Steps steps={[
+            'まず下で「同期したい社員」を選ぶ（選ばなければ全員ぶん）',
             'Googleカレンダー（calendar.google.com）を開く',
             '左メニューの「他のカレンダー」横の ＋ をクリック',
             '「URLで追加」を選択',
-            '以下のURLを入力してカレンダーを追加',
+            '下のURLを貼り付けてカレンダーを追加',
           ]} />
+
+          {/* 同期する社員を選択 */}
+          <div style={{ marginTop: 12, marginBottom: 6, fontSize: 12, fontWeight: 600, color: '#444' }}>
+            👥 同期する社員を選ぶ
+            <span style={{ fontWeight: 400, color: '#888', marginLeft: 6 }}>
+              （何も選ばなければ全員）
+            </span>
+          </div>
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: '6px 8px',
+            background: '#fafbfd', border: '0.5px solid #e0e0e0',
+            borderRadius: 8, padding: '10px 12px'
+          }}>
+            {staffOnly.length === 0 && (
+              <span style={{ fontSize: 12, color: '#aaa' }}>社員データを読み込み中…</span>
+            )}
+            {staffOnly.map(s => {
+              const checked = selectedIds.includes(s.id)
+              return (
+                <label key={s.id} style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  fontSize: 12, padding: '4px 9px', borderRadius: 6, cursor: 'pointer',
+                  background: checked ? '#185FA5' : '#fff',
+                  color: checked ? '#fff' : '#333',
+                  border: `0.5px solid ${checked ? '#185FA5' : '#ccc'}`,
+                  userSelect: 'none', transition: 'all 0.12s'
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleStaff(s.id)}
+                    style={{ display: 'none' }}
+                  />
+                  {checked ? '✓ ' : ''}{s.name}
+                </label>
+              )
+            })}
+          </div>
+
+          {selectedIds.length > 0 && (
+            <button
+              onClick={() => { setSelectedIds([]); setCopied(false) }}
+              style={{
+                marginTop: 6, fontSize: 11, color: '#185FA5',
+                background: 'none', border: 'none', cursor: 'pointer', padding: 0
+              }}
+            >× 選択をクリア（全員に戻す）</button>
+          )}
+
+          {/* 生成されたURL */}
+          <div style={{ marginTop: 10, fontSize: 11, color: '#666' }}>
+            {selectedIds.length > 0
+              ? `🔗 選択中 ${selectedIds.length} 名ぶんのURL`
+              : '🔗 全員ぶんのURL'}
+          </div>
           <div style={{
             background: '#f0f4ff', border: '0.5px solid #c0d0f0',
-            borderRadius: 8, padding: '8px 12px', marginTop: 8,
+            borderRadius: 8, padding: '8px 12px', marginTop: 4,
             fontSize: 11, wordBreak: 'break-all', color: '#185FA5', fontFamily: 'monospace'
           }}>
-            https://rrsbyiypwgnwzqadwpky.supabase.co/functions/v1/frex-ical
+            {icalUrl}
           </div>
+          <button
+            onClick={copyUrl}
+            style={{
+              marginTop: 8, background: copied ? '#2e9e5b' : '#185FA5', color: '#fff',
+              border: 'none', borderRadius: 8, padding: '6px 18px',
+              fontSize: 12, cursor: 'pointer', fontWeight: 500
+            }}
+          >{copied ? '✓ コピーしました' : '📋 URLをコピー'}</button>
+
           <p style={{ marginTop: 8, fontSize: 12, color: '#888' }}>
             ※ Googleカレンダーの同期は数時間に1回自動更新されます
           </p>
