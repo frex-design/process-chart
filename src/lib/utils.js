@@ -33,14 +33,70 @@ export function jobColor(jobId, jobs) {
   return JOB_COLORS[n]
 }
 
+// 第n月曜日の「日」を返す（ハッピーマンデー用）
+function nthMonday(year, month, n) {
+  const firstDow = new Date(year, month - 1, 1).getDay() // 0=日
+  const offset = (8 - firstDow) % 7 // 1日から最初の月曜までの日数
+  return 1 + offset + (n - 1) * 7
+}
+
+// 春分の日・秋分の日（天文近似式・1980〜2099年で有効）
+function vernalEquinox(year) {
+  return Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4))
+}
+function autumnalEquinox(year) {
+  return Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4))
+}
+
+// 指定年の国民の祝日・休日を { 'YYYY-MM-DD': '祝日名' } で返す
+// 対応: 日付固定・ハッピーマンデー・春分秋分・振替休日・国民の休日
 export function getHolidays(year) {
+  const pad = n => String(n).padStart(2, '0')
+  const key = (m, d) => `${year}-${pad(m)}-${pad(d)}`
   const h = {}
-  const add = (m, d, n) => { h[`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`] = n }
-  add(1,1,'元日'); add(2,11,'建国記念日'); add(2,23,'天皇誕生日')
-  add(3,20,'春分の日'); add(4,29,'昭和の日'); add(5,3,'憲法記念日')
-  add(5,4,'みどりの日'); add(5,5,'こどもの日'); add(7,15,'海の日')
-  add(8,11,'山の日'); add(9,16,'敬老の日'); add(9,23,'秋分の日')
-  add(10,13,'スポーツの日'); add(11,3,'文化の日'); add(11,23,'勤労感謝の日')
+
+  // ① 日付が固定の祝日
+  h[key(1, 1)]   = '元日'
+  h[key(2, 11)]  = '建国記念の日'
+  h[key(2, 23)]  = '天皇誕生日'
+  h[key(4, 29)]  = '昭和の日'
+  h[key(5, 3)]   = '憲法記念日'
+  h[key(5, 4)]   = 'みどりの日'
+  h[key(5, 5)]   = 'こどもの日'
+  h[key(8, 11)]  = '山の日'
+  h[key(11, 3)]  = '文化の日'
+  h[key(11, 23)] = '勤労感謝の日'
+
+  // ② ハッピーマンデー（第n月曜日）
+  h[key(1, nthMonday(year, 1, 2))]   = '成人の日'      // 1月第2月曜
+  h[key(7, nthMonday(year, 7, 3))]   = '海の日'        // 7月第3月曜
+  h[key(9, nthMonday(year, 9, 3))]   = '敬老の日'      // 9月第3月曜
+  h[key(10, nthMonday(year, 10, 2))] = 'スポーツの日'  // 10月第2月曜
+
+  // ③ 春分の日・秋分の日（年によって変動）
+  h[key(3, vernalEquinox(year))]   = '春分の日'
+  h[key(9, autumnalEquinox(year))] = '秋分の日'
+
+  // ④ 国民の休日（前後の日が両方とも祝日の平日）※振替より先に確定
+  const base = { ...h }
+  for (let d = new Date(year, 0, 1); d.getFullYear() === year; d.setDate(d.getDate() + 1)) {
+    if (d.getDay() === 0) continue // 日曜は対象外
+    const today = ds(d)
+    if (base[today]) continue // 既に祝日
+    const prev = new Date(d); prev.setDate(prev.getDate() - 1)
+    const next = new Date(d); next.setDate(next.getDate() + 1)
+    if (base[ds(prev)] && base[ds(next)]) h[today] = '国民の休日'
+  }
+
+  // ⑤ 振替休日（祝日が日曜 → 次の祝日でない日）
+  for (const dateStr of Object.keys({ ...h })) {
+    const dt = new Date(dateStr + 'T00:00:00')
+    if (dt.getDay() !== 0) continue // 日曜の祝日のみ
+    const sub = new Date(dt)
+    do { sub.setDate(sub.getDate() + 1) } while (h[ds(sub)])
+    if (sub.getFullYear() === year) h[ds(sub)] = '振替休日'
+  }
+
   return h
 }
 

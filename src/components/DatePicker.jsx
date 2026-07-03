@@ -1,15 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-
-function getHolidays(year) {
-  const h = {}
-  const add = (m, d, n) => { h[`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`] = n }
-  add(1,1,'元日'); add(2,11,'建国記念日'); add(2,23,'天皇誕生日')
-  add(3,20,'春分の日'); add(4,29,'昭和の日'); add(5,3,'憲法記念日')
-  add(5,4,'みどりの日'); add(5,5,'こどもの日'); add(7,15,'海の日')
-  add(8,11,'山の日'); add(9,16,'敬老の日'); add(9,23,'秋分の日')
-  add(10,13,'スポーツの日'); add(11,3,'文化の日'); add(11,23,'勤労感謝の日')
-  return h
-}
+import { getHolidays } from '../lib/utils'
 
 const TODAY = new Date().toISOString().slice(0, 10)
 
