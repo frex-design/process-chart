@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { jobColor, ds } from '../lib/utils'
+import { jobColor, ds, jobNum } from '../lib/utils'
 
 function Tooltip({ job, x, y }) {
   if (!job) return null
@@ -37,8 +37,14 @@ export default function Legend({ jobs, today, onEdit, customers = [], mobileOnly
     return () => document.removeEventListener('mousemove', handleMove)
   }, [tip])
 
+  const byNum = (a, b) => {
+    const na = jobNum(a.name), nb = jobNum(b.name)
+    if (na !== nb) return na - nb
+    return String(a.name || '').localeCompare(String(b.name || ''), 'ja')
+  }
+
   const activeJobs = jobs.filter(j => !j.contract_end || j.contract_end >= today)
-  const normalJobs = activeJobs.filter(j => !BOTTOM_JOBS.includes(j.name))
+  const normalJobs = activeJobs.filter(j => !BOTTOM_JOBS.includes(j.name)).sort(byNum)
   const fixedJobs = activeJobs.filter(j => BOTTOM_JOBS.includes(j.name))
   const endedJobs = jobs.filter(j => j.contract_end && j.contract_end < today)
 
@@ -49,6 +55,7 @@ export default function Legend({ jobs, today, onEdit, customers = [], mobileOnly
     if (!byYear[yr]) byYear[yr] = []
     byYear[yr].push(j)
   })
+  Object.keys(byYear).forEach(yr => byYear[yr].sort(byNum))
 
   const jobLabel = (j) => {
     if (mobileOnly) return j.name

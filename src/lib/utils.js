@@ -1,8 +1,22 @@
 export const PHASES = ['準備計画','現地踏査','踏査まとめ','定期点検','損傷図作成','調書作成']
 
+// 業務バーの色パレット（13色・視認性優先）
+// - 固定色（有給=#e03030 / その他=#7b52b8）とは重複しない
+// - 同系色を排除し、番号順で隣り合う業務が似た色にならないようジグザグ配置
 export const JOB_COLORS = [
-  '#2a5bbf','#e07b00','#1a8a5a','#7b52b8',
-  '#b05a00','#0e7090','#b03070','#3a8a30','#6a3a9a','#c06000'
+  '#2a5bbf', // ① ロイヤルブルー
+  '#e07b00', // ② オレンジ
+  '#1a8a5a', // ③ グリーン
+  '#c0398f', // ④ マゼンタ
+  '#0e8fa0', // ⑤ シアン
+  '#b5651d', // ⑥ ブラウン
+  '#7a9a1a', // ⑦ イエローグリーン
+  '#d4a017', // ⑧ ゴールド
+  '#3f7fd0', // ⑨ スカイブルー
+  '#9a3a1a', // ⑩ ラスト
+  '#16a085', // ⑪ ティール
+  '#b0006f', // ⑫ ローズ
+  '#6b8e23'  // ⑬ オリーブ
 ]
 
 export const COL = 20 // px per day
@@ -25,10 +39,30 @@ export const FIXED_JOB_COLORS = {
   'その他': '#7b52b8'
 }
 
+// 業務名の先頭番号（例: "001.秋田南部" → 1）を返す。番号なしは Infinity（末尾へ）
+export function jobNum(name) {
+  const m = String(name || '').match(/^\s*0*(\d+)/)
+  return m ? parseInt(m[1], 10) : Infinity
+}
+
+// 色を割り当てる対象（固定色を除く）を業務名の番号順に並べたリスト
+export function orderedColorableJobs(jobs) {
+  return jobs
+    .filter(j => !FIXED_JOB_COLORS[j.name])
+    .slice()
+    .sort((a, b) => {
+      const na = jobNum(a.name), nb = jobNum(b.name)
+      if (na !== nb) return na - nb
+      return String(a.name || '').localeCompare(String(b.name || ''), 'ja')
+    })
+}
+
 export function jobColor(jobId, jobs) {
   const job = jobs.find(x => x.id === jobId)
   if (job && FIXED_JOB_COLORS[job.name]) return FIXED_JOB_COLORS[job.name]
-  const i = jobs.findIndex(x => x.id === jobId)
+  // 番号順のindexで色を割り当て → 表示中の業務が同じ色にならない
+  const ordered = orderedColorableJobs(jobs)
+  const i = ordered.findIndex(x => x.id === jobId)
   const n = (i < 0 ? 0 : i) % JOB_COLORS.length
   return JOB_COLORS[n]
 }
