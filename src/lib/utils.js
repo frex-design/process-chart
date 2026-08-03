@@ -83,7 +83,8 @@ export function buildDays(year) {
 
 export const FIXED_JOB_COLORS = {
   '有給休暇': '#e03030',
-  'その他': '#7b52b8'
+  'その他': '#7b52b8',
+  '復建(本社)トンネル': '#f2cf63'  // 専用の薄めゴールド（CEO指定）
 }
 
 // 業務名の先頭番号（例: "001.秋田南部" → 1）を返す。番号なしは Infinity（末尾へ）
