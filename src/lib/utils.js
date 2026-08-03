@@ -1,5 +1,37 @@
 export const PHASES = ['準備計画','現地踏査','踏査まとめ','定期点検','損傷図作成','調書作成']
 
+// 現場工程（バーを点滅表示する対象）
+export const PULSE_PHASES = ['現地踏査', '定期点検']
+
+// 自由記入と工程の合成セパレータ（「自由記入ー工程名」表記）
+export const PHASE_SEP = 'ー'
+
+// 自由記入(free)とプリセット工程(preset)を1つの phase 文字列に合成
+export function combinePhase(free, preset) {
+  const f = (free || '').trim()
+  const p = preset || ''
+  if (f && p) return `${f}${PHASE_SEP}${p}`
+  return f || p || ''
+}
+
+// 保存済みの phase 文字列を { free, preset } に分解
+export function splitPhase(phase) {
+  const s = (phase || '').trim()
+  if (!s) return { free: '', preset: '' }
+  if (PHASES.includes(s)) return { free: '', preset: s }        // プリセットのみ
+  for (const p of PHASES) {                                      // 「自由記入ー工程」形式
+    if (s.endsWith(PHASE_SEP + p)) {
+      return { free: s.slice(0, s.length - (PHASE_SEP + p).length), preset: p }
+    }
+  }
+  return { free: s, preset: '' }                                 // 自由記入のみ
+}
+
+// この phase が現場工程を含むか（点滅対象か）
+export function isPulsePhase(phase) {
+  return PULSE_PHASES.includes(splitPhase(phase).preset)
+}
+
 // 業務バーの色パレット（13色・視認性優先）
 // - バー文字は白固定のため、白文字が読める暗さの色のみ採用
 // - 暗い暖色（茶・金・ラスト）は"こげ茶"に潰れて見分けにくいので廃止し、

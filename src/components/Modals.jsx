@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { PHASES, ds } from '../lib/utils'
+import { PHASES, ds, combinePhase, splitPhase } from '../lib/utils'
 import DatePicker from './DatePicker'
 
 export default function Modals({
@@ -25,11 +25,11 @@ export default function Modals({
     window._openDriverBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'driverBar', data }) }
     window._openCarBar = (data) => { setForm({ start: data.start, end: data.end, jobId: jobs[0]?.id }); setModal({ type: 'carBar', data }) }
     window._openBarDetail = (bar) => {
-      const isPreset = PHASES.includes(bar.phase)
+      const { free, preset } = splitPhase(bar.phase)
       setForm({
         jobId: bar.job_id,
-        phase: isPreset ? bar.phase : '',
-        customPhase: isPreset ? '' : (bar.phase || ''),
+        phase: preset,
+        customPhase: free,
         start: bar.start_date,
         end: bar.end_date,
         customerId: bar.customer_id || ''
@@ -68,7 +68,7 @@ export default function Modals({
   async function saveNewBar() {
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     const year = new Date(form.start).getMonth() < 3 ? new Date(form.start).getFullYear() - 1 : new Date(form.start).getFullYear()
-    const phase = form.customPhase?.trim() || selectedPhase || ''
+    const phase = combinePhase(form.customPhase, selectedPhase)
     await supabase.from('bars').insert({
       year, job_id: parseInt(form.jobId || jobs[0]?.id),
       phase, staff_id: modal.data.staffId,
@@ -102,7 +102,7 @@ export default function Modals({
   async function saveBarDetail() {
     if (!form.start || !form.end) { alert('開始日・終了日を入力してください'); return }
     if (form.start > form.end) { alert('終了日は開始日以降にしてください'); return }
-    const phase = form.customPhase?.trim() || form.phase || ''
+    const phase = combinePhase(form.customPhase, form.phase)
     await supabase.from('bars').update({
       job_id: parseInt(form.jobId), phase,
       start_date: form.start, end_date: form.end,
@@ -119,7 +119,7 @@ export default function Modals({
 
   async function copyBarToStaff() {
     if (copyTargets.length === 0) { alert('コピー先を選択してください'); return }
-    const phase = form.customPhase?.trim() || form.phase || ''
+    const phase = combinePhase(form.customPhase, form.phase)
     const inserts = copyTargets.map(staffId => ({
       year: modal.data.year,
       job_id: parseInt(form.jobId),
@@ -279,16 +279,16 @@ export default function Modals({
               {PHASES.map(ph => (
                 <div
                   key={ph}
-                  className={'phase-opt' + (selectedPhase === ph && !form.customPhase ? ' selected' : '')}
-                  onClick={() => { setSelectedPhase(ph); f('customPhase', '') }}
+                  className={'phase-opt' + (selectedPhase === ph ? ' selected' : '')}
+                  onClick={() => setSelectedPhase(selectedPhase === ph ? '' : ph)}
                 >{ph}</div>
               ))}
             </div>
             <input
               style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
-              placeholder="自由記入（入力するとこちらが優先されます）"
+              placeholder="自由記入（工程と併記できます）"
               value={form.customPhase || ''}
-              onChange={e => { f('customPhase', e.target.value); if (e.target.value) setSelectedPhase('') }}
+              onChange={e => f('customPhase', e.target.value)}
             />
           </div>
           {dateRange('start', 'end')}
@@ -353,16 +353,16 @@ export default function Modals({
                 {PHASES.map(ph => (
                   <div
                     key={ph}
-                    className={'phase-opt' + (form.phase === ph && !form.customPhase ? ' selected' : '')}
-                    onClick={() => { f('phase', ph); f('customPhase', '') }}
+                    className={'phase-opt' + (form.phase === ph ? ' selected' : '')}
+                    onClick={() => f('phase', form.phase === ph ? '' : ph)}
                   >{ph}</div>
                 ))}
               </div>
               <input
                 style={{ marginTop: 8, width: '100%', fontSize: 12, padding: '5px 8px', border: '0.5px solid #ccc', borderRadius: 8 }}
-                placeholder="自由記入（入力するとこちらが優先されます）"
+                placeholder="自由記入（工程と併記できます）"
                 value={form.customPhase || ''}
-                onChange={e => { f('customPhase', e.target.value); if (e.target.value) f('phase', '') }}
+                onChange={e => f('customPhase', e.target.value)}
               />
             </div>
           )}

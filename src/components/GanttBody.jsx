@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { ds, jobColor, getHolidays, COL, PHASES, overlap } from '../lib/utils'
+import { ds, jobColor, getHolidays, COL, PHASES, overlap, isPulsePhase } from '../lib/utils'
 
 export default function GanttBody({
   days, year, today,
@@ -136,8 +136,6 @@ export default function GanttBody({
     document.addEventListener('mouseup', onUp)
   }
 
-  const PULSE_PHASES = ['現地踏査', '定期点検']
-
   function renderBar(b, di, isSmall, showPhase) {
     const si = Math.max(0, dayIdx(b.start_date))
     if (si !== di) return null
@@ -151,7 +149,7 @@ export default function GanttBody({
     const fontSize = isSmall ? 10 : 12
     const top = isSmall ? 5 : 6
     const height = isSmall ? 24 : 30
-    const isPulse = PULSE_PHASES.includes(b.phase)
+    const isPulse = isPulsePhase(b.phase)
     const barStyle = isPulse
       ? { left: 1, top, height, width: w, background: color, color: '#fff', fontSize }
       : { left: 1, top, height, width: w, background: color, color: '#fff', fontSize, borderRadius: 2 }
