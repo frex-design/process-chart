@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
-import { ds, jobColor, getHolidays, COL, PHASES, overlap, isPulsePhase } from '../lib/utils'
+import { ds, jobColor, getHolidays, COL, PHASES, overlap, isPulsePhase, textColorFor } from '../lib/utils'
 
 export default function GanttBody({
   days, year, today,
@@ -150,9 +150,10 @@ export default function GanttBody({
     const top = isSmall ? 5 : 6
     const height = isSmall ? 24 : 30
     const isPulse = isPulsePhase(b.phase)
+    const txt = textColorFor(color)
     const barStyle = isPulse
-      ? { left: 1, top, height, width: w, background: color, color: '#fff', fontSize }
-      : { left: 1, top, height, width: w, background: color, color: '#fff', fontSize, borderRadius: 2 }
+      ? { left: 1, top, height, width: w, background: color, color: txt, fontSize }
+      : { left: 1, top, height, width: w, background: color, color: txt, fontSize, borderRadius: 2 }
     return (
       <div
         key={b.id}
@@ -186,7 +187,7 @@ export default function GanttBody({
       <div
         key={b.id}
         className="bar-sm"
-        style={{ left: 1, top: 5, height: 24, width: w, background: color, color: '#fff', fontSize: 10, borderRadius: 2 }}
+        style={{ left: 1, top: 5, height: 24, width: w, background: color, color: textColorFor(color), fontSize: 10, borderRadius: 2 }}
         onMouseDown={e => onBarMouseDown(e, b, 'carbar')}
         onMouseEnter={e => {
           const jn = (jobs.find(x => x.id === b.job_id) || { name: '?' }).name
